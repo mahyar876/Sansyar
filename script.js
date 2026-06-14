@@ -46,7 +46,7 @@ if (document.getElementById('pitchesGrid')) {
 
   // ── GLOBAL STATE (قابل دسترس از همه جا) ──
   window.SNS = {
-    API:           'http://localhost:5000',
+    API:           'http://localhost:5000/api',
     typeLabel:     { futsal: 'فوتسال', grass: 'چمن' },
     pitches:       [],
     filteredList:  [],
@@ -60,7 +60,109 @@ if (document.getElementById('pitchesGrid')) {
     '۱۸:۰۰–۱۹:۰۰','۱۹:۰۰–۲۰:۰۰','۲۰:۰۰–۲۱:۰۰','۲۱:۰۰–۲۲:۰۰',
   ];
 
-  // ── LOAD PITCHES FROM API ──
+  // ── STATIC FALLBACK DATA (وقتی بک‌اند آفلاینه) ──
+  const STATIC_PITCHES = [
+    {
+      id: '1', name: 'سالن فوتسال آریا', type: 'futsal', size: 5,
+      price: 180000, avail: 6, color1: '#0d3320', color2: '#051a0e',
+      tags: ['سرپوشیده', 'رختکن', 'کفپوش PVC', 'نور مصنوعی'],
+      address: 'خیابان ولیعصر، نرسیده به میدان ونک',
+      slots: [
+        {time:'۰۸:۰۰–۰۹:۰۰',taken:false},{time:'۰۹:۰۰–۱۰:۰۰',taken:false},
+        {time:'۱۰:۰۰–۱۱:۰۰',taken:false},{time:'۱۱:۰۰–۱۲:۰۰',taken:false},
+        {time:'۱۴:۰۰–۱۵:۰۰',taken:false},{time:'۱۵:۰۰–۱۶:۰۰',taken:false},
+        {time:'۱۶:۰۰–۱۷:۰۰',taken:false},{time:'۱۷:۰۰–۱۸:۰۰',taken:false},
+        {time:'۱۸:۰۰–۱۹:۰۰',taken:false},{time:'۱۹:۰۰–۲۰:۰۰',taken:false},
+        {time:'۲۰:۰۰–۲۱:۰۰',taken:false},{time:'۲۱:۰۰–۲۲:۰۰',taken:false},
+      ]
+    },
+    {
+      id: '2', name: 'چمن فوتبال پارک ملت', type: 'grass', size: 11,
+      price: 320000, avail: 3, color1: '#0a2e10', color2: '#040f06',
+      tags: ['چمن مصنوعی', 'روشنایی شبانه', 'پارکینگ', 'تریبون'],
+      address: 'پارک ملت، بلوار کشاورز',
+      slots: [
+        {time:'۰۸:۰۰–۰۹:۰۰',taken:true},{time:'۰۹:۰۰–۱۰:۰۰',taken:true},
+        {time:'۱۰:۰۰–۱۱:۰۰',taken:true},{time:'۱۱:۰۰–۱۲:۰۰',taken:false},
+        {time:'۱۴:۰۰–۱۵:۰۰',taken:true},{time:'۱۵:۰۰–۱۶:۰۰',taken:true},
+        {time:'۱۶:۰۰–۱۷:۰۰',taken:true},{time:'۱۷:۰۰–۱۸:۰۰',taken:true},
+        {time:'۱۸:۰۰–۱۹:۰۰',taken:false},{time:'۱۹:۰۰–۲۰:۰۰',taken:false},
+        {time:'۲۰:۰۰–۲۱:۰۰',taken:true},{time:'۲۱:۰۰–۲۲:۰۰',taken:true},
+      ]
+    },
+    {
+      id: '3', name: 'فوتسال ستاره شرق', type: 'futsal', size: 7,
+      price: 210000, avail: 8, color1: '#0d2e1a', color2: '#060f08',
+      tags: ['سرپوشیده', 'دوش', 'نوشیدنی', 'وای‌فای'],
+      address: 'نارمک، خیابان دماوند',
+      slots: [
+        {time:'۰۸:۰۰–۰۹:۰۰',taken:false},{time:'۰۹:۰۰–۱۰:۰۰',taken:false},
+        {time:'۱۰:۰۰–۱۱:۰۰',taken:false},{time:'۱۱:۰۰–۱۲:۰۰',taken:false},
+        {time:'۱۴:۰۰–۱۵:۰۰',taken:true},{time:'۱۵:۰۰–۱۶:۰۰',taken:false},
+        {time:'۱۶:۰۰–۱۷:۰۰',taken:false},{time:'۱۷:۰۰–۱۸:۰۰',taken:false},
+        {time:'۱۸:۰۰–۱۹:۰۰',taken:true},{time:'۱۹:۰۰–۲۰:۰۰',taken:false},
+        {time:'۲۰:۰۰–۲۱:۰۰',taken:false},{time:'۲۱:۰۰–۲۲:۰۰',taken:false},
+      ]
+    },
+    {
+      id: '4', name: 'زمین چمن رضایی', type: 'grass', size: 7,
+      price: 250000, avail: 4, color1: '#082510', color2: '#030c05',
+      tags: ['چمن طبیعی', 'تریبون', 'بوفه', 'رختکن'],
+      address: 'تهران پارس، خیابان شکوفه',
+      slots: [
+        {time:'۰۸:۰۰–۰۹:۰۰',taken:true},{time:'۰۹:۰۰–۱۰:۰۰',taken:true},
+        {time:'۱۰:۰۰–۱۱:۰۰',taken:false},{time:'۱۱:۰۰–۱۲:۰۰',taken:true},
+        {time:'۱۴:۰۰–۱۵:۰۰',taken:true},{time:'۱۵:۰۰–۱۶:۰۰',taken:true},
+        {time:'۱۶:۰۰–۱۷:۰۰',taken:true},{time:'۱۷:۰۰–۱۸:۰۰',taken:true},
+        {time:'۱۸:۰۰–۱۹:۰۰',taken:false},{time:'۱۹:۰۰–۲۰:۰۰',taken:true},
+        {time:'۲۰:۰۰–۲۱:۰۰',taken:false},{time:'۲۱:۰۰–۲۲:۰۰',taken:false},
+      ]
+    },
+    {
+      id: '5', name: 'سالن ورزشی امید', type: 'futsal', size: 5,
+      price: 160000, avail: 5, color1: '#0d3320', color2: '#051a0e',
+      tags: ['سرپوشیده', 'رختکن', 'مربی آزاد'],
+      address: 'صادقیه، خیابان آیت‌الله کاشانی',
+      slots: [
+        {time:'۰۸:۰۰–۰۹:۰۰',taken:false},{time:'۰۹:۰۰–۱۰:۰۰',taken:true},
+        {time:'۱۰:۰۰–۱۱:۰۰',taken:false},{time:'۱۱:۰۰–۱۲:۰۰',taken:true},
+        {time:'۱۴:۰۰–۱۵:۰۰',taken:true},{time:'۱۵:۰۰–۱۶:۰۰',taken:false},
+        {time:'۱۶:۰۰–۱۷:۰۰',taken:false},{time:'۱۷:۰۰–۱۸:۰۰',taken:true},
+        {time:'۱۸:۰۰–۱۹:۰۰',taken:false},{time:'۱۹:۰۰–۲۰:۰۰',taken:false},
+        {time:'۲۰:۰۰–۲۱:۰۰',taken:true},{time:'۲۱:۰۰–۲۲:۰۰',taken:false},
+      ]
+    },
+    {
+      id: '6', name: 'چمن فوتبال دانشگاه', type: 'grass', size: 11,
+      price: 280000, avail: 2, color1: '#0a2e10', color2: '#040f06',
+      tags: ['چمن مصنوعی', 'روشنایی شبانه', 'دوربین'],
+      address: 'انقلاب، محوطه دانشگاه تهران',
+      slots: [
+        {time:'۰۸:۰۰–۰۹:۰۰',taken:true},{time:'۰۹:۰۰–۱۰:۰۰',taken:true},
+        {time:'۱۰:۰۰–۱۱:۰۰',taken:true},{time:'۱۱:۰۰–۱۲:۰۰',taken:true},
+        {time:'۱۴:۰۰–۱۵:۰۰',taken:true},{time:'۱۵:۰۰–۱۶:۰۰',taken:true},
+        {time:'۱۶:۰۰–۱۷:۰۰',taken:true},{time:'۱۷:۰۰–۱۸:۰۰',taken:true},
+        {time:'۱۸:۰۰–۱۹:۰۰',taken:true},{time:'۱۹:۰۰–۲۰:۰۰',taken:true},
+        {time:'۲۰:۰۰–۲۱:۰۰',taken:false},{time:'۲۱:۰۰–۲۲:۰۰',taken:false},
+      ]
+    },
+  ];
+
+  // ── فیلتر محلی روی داده‌های static ──
+  function applyStaticFilter(pitches) {
+    const type = document.getElementById('typeFilter').value;
+    const size = parseInt(document.getElementById('sizeFilter').value) || 0;
+    const sort = document.getElementById('sortFilter').value;
+
+    let list = pitches.slice();
+    if (type) list = list.filter(p => p.type === type);
+    if (size && size !== 0) list = list.filter(p => p.size === size);
+    if (sort === 'price') list.sort((a, b) => a.price - b.price);
+    else if (sort === 'avail') list.sort((a, b) => b.avail - a.avail);
+    return list;
+  }
+
+  // ── LOAD PITCHES FROM API (با fallback به static) ──
   async function loadPitches() {
     try {
       const type = document.getElementById('typeFilter').value;
@@ -72,7 +174,11 @@ if (document.getElementById('pitchesGrid')) {
       if (size && size !== '0') params.set('size', size);
       if (sort) params.set('sort', sort);
 
-      const res  = await fetch(SNS.API + '/pitches?' + params);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+
+      const res  = await fetch(SNS.API + '/pitches?' + params, { signal: controller.signal });
+      clearTimeout(timeout);
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
 
@@ -81,23 +187,30 @@ if (document.getElementById('pitchesGrid')) {
       renderPitches();
 
     } catch (err) {
-      console.error('خطا:', err);
-      document.getElementById('pitchesGrid').innerHTML =
-        '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ef4444">خطا در اتصال به سرور. مطمئن شو بک‌اند روشنه.</div>';
+      // بک‌اند آفلاینه — از داده‌های static استفاده کن
+      console.warn('بک‌اند در دسترس نیست، از داده‌های محلی استفاده میشه');
+      if (!SNS._allStatic) SNS._allStatic = STATIC_PITCHES;
+      SNS.pitches      = SNS._allStatic;
+      SNS.filteredList = applyStaticFilter(SNS._allStatic);
+      renderPitches();
     }
   }
   window.loadPitches = loadPitches;
 
-  // ── LOAD SLOTS FROM API ──
+  // ── LOAD SLOTS FROM API (با fallback به static) ──
   async function loadSlots(pitchId) {
     try {
-      const res  = await fetch(SNS.API + '/pitches/' + pitchId + '/slots');
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res  = await fetch(SNS.API + '/pitches/' + pitchId + '/slots', { signal: controller.signal });
+      clearTimeout(timeout);
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
       return data.slots;
     } catch (err) {
-      console.error('خطا در سانس‌ها:', err);
-      return [];
+      // fallback: سانس‌های static رو برگردون
+      const staticPitch = STATIC_PITCHES.find(p => p.id === pitchId || p._id === pitchId);
+      return staticPitch ? staticPitch.slots : [];
     }
   }
 
@@ -216,7 +329,14 @@ if (document.getElementById('pitchesGrid')) {
 
   // ── APPLY FILTER ──
   async function applyFilter() {
-    await loadPitches();
+    // اگه داده‌های static لود شدن، فیلتر محلی بزن (بدون fetch جدید)
+    if (SNS._allStatic) {
+      SNS.filteredList = applyStaticFilter(SNS._allStatic);
+      renderPitches();
+    } else {
+      await loadPitches();
+    }
+
     if (SNS.selectedPitch && !SNS.filteredList.find(function(p) {
       return (p._id || p.id) === (SNS.selectedPitch._id || SNS.selectedPitch.id);
     })) {
