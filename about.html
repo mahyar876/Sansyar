@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سانس‌یار | درباره ما</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --bg:           #07100d;
+      --bg-card:      #0d1f17;
+      --bg-nav:       rgba(7,16,13,0.93);
+      --bg-section:   #0b1a13;
+      --green:        #22c55e;
+      --green-dim:    #16a34a;
+      --green-glow:   rgba(34,197,94,0.13);
+      --green-border: rgba(34,197,94,0.18);
+      --text:         #f0faf4;
+      --text-body:    #7fa98c;
+      --text-muted:   #3d6650;
+      --radius:       12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      direction: rtl;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Vazirmatn', sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAVBAR ── */
+    .header {
+      position: sticky; top: 0; z-index: 200;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 80px; height: 68px;
+      background: var(--bg-nav);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--green-border);
+    }
+    .logo a {
+      text-decoration: none; font-size: 22px; font-weight: 900;
+      color: var(--text); display: flex; align-items: center; gap: 9px;
+      transition: color .2s;
+    }
+    .logo-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 10px var(--green);
+      display: inline-block;
+    }
+    .logo a:hover { color: var(--green); }
+    .nav { display: flex; gap: 36px; list-style: none; }
+    .nav a {
+      text-decoration: none; color: var(--text-body); font-size: 15px;
+      font-weight: 500; position: relative; transition: color .2s;
+    }
+    .nav a::after {
+      content: ''; position: absolute; bottom: -4px; right: 0;
+      width: 0; height: 2px; background: var(--green); transition: width .25s;
+    }
+    .nav a:hover { color: var(--text); }
+    .nav a:hover::after { width: 100%; }
+    .nav a.active { color: var(--green); }
+    .nav a.active::after { width: 100%; }
+    .btn {
+      display: inline-block; background: var(--green); color: #04100a;
+      padding: 11px 26px; border-radius: var(--radius); text-decoration: none;
+      font-weight: 700; font-size: 15px;
+      transition: background .2s, box-shadow .2s, transform .15s;
+      box-shadow: 0 0 22px rgba(34,197,94,.28);
+    }
+    .btn:hover { background: var(--green-dim); box-shadow: 0 0 36px rgba(34,197,94,.45); transform: translateY(-2px); }
+
+    /* ── HERO ── */
+    .about-hero {
+      padding: 90px 80px 80px;
+      background: var(--bg-section);
+      border-bottom: 1px solid var(--green-border);
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; gap: 60px;
+    }
+
+    .about-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(34,197,94,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,.025) 1px, transparent 1px);
+      background-size: 52px 52px;
+      pointer-events: none;
+    }
+
+    .about-hero::after {
+      content: '';
+      position: absolute; top: -80px; left: -80px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(34,197,94,.06), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-text { flex: 1; position: relative; z-index: 1; }
+
+    .sec-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; color: var(--green);
+      letter-spacing: 2px; text-transform: uppercase;
+      padding: 5px 14px; background: var(--green-glow);
+      border: 1px solid var(--green-border); border-radius: 30px;
+      margin-bottom: 18px;
+    }
+    .sec-eyebrow span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)}
+    }
+
+    .about-hero h1 { font-size: 46px; font-weight: 900; line-height: 1.2; margin-bottom: 18px; }
+    .about-hero h1 em { font-style: normal; color: var(--green); }
+    .about-hero p { font-size: 16px; color: var(--text-body); line-height: 1.85; max-width: 480px; margin-bottom: 32px; }
+
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn-ghost {
+      display: inline-block; background: transparent; color: var(--green);
+      padding: 11px 26px; border-radius: var(--radius); text-decoration: none;
+      font-weight: 700; font-size: 15px;
+      border: 1.5px solid var(--green); transition: all .2s;
+    }
+    .btn-ghost:hover { background: var(--green-glow); }
+
+    /* hero visual */
+    .hero-visual { flex: 1; display: flex; justify-content: center; position: relative; z-index: 1; }
+
+    .about-pitch-card {
+      width: 100%; max-width: 400px;
+      background: var(--bg-card);
+      border: 1px solid var(--green-border);
+      border-radius: 18px; overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,.55);
+    }
+
+    .apc-pitch {
+      height: 180px; position: relative;
+      background: linear-gradient(145deg,#0d3320,#051a0e);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .apc-pitch svg { width: 100%; height: 100%; }
+    .apc-body { padding: 20px 22px; }
+    .apc-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px solid rgba(34,197,94,.06); }
+    .apc-row:last-child { border-bottom: none; }
+    .apc-l { color: var(--text-muted); }
+    .apc-r { font-weight: 600; }
+    .apc-r.green { color: var(--green); }
+
+    /* ── FIELD LINE ── */
+    .field-line {
+      position: relative; margin: 0 80px; height: 1px;
+      background: linear-gradient(90deg,transparent,var(--green) 25%,var(--green) 75%,transparent);
+      box-shadow: 0 0 10px var(--green), 0 0 28px rgba(34,197,94,.2);
+    }
+    .field-line::before, .field-line::after {
+      content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 8px var(--green);
+    }
+    .field-line::before { right: 0; }
+    .field-line::after  { left: 0; }
+
+    /* ── STORY ── */
+    .story-section {
+      padding: 90px 80px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+      align-items: center;
+    }
+
+    .story-label {
+      font-size: 11px; font-weight: 700; color: var(--green);
+      letter-spacing: 2.5px; text-transform: uppercase;
+      margin-bottom: 10px; display: block;
+    }
+
+    .story-title { font-size: 34px; font-weight: 800; margin-bottom: 20px; line-height: 1.25; }
+    .story-title em { font-style: normal; color: var(--green); }
+    .story-body { font-size: 15px; color: var(--text-body); line-height: 1.9; }
+    .story-body p { margin-bottom: 14px; }
+
+    /* timeline */
+    .timeline { position: relative; padding-right: 28px; margin-top: 12px; }
+    .timeline::before {
+      content: ''; position: absolute;
+      right: 10px; top: 0; bottom: 0;
+      width: 2px; background: var(--green-border);
+    }
+
+    .tl-item { position: relative; margin-bottom: 28px; }
+    .tl-dot {
+      position: absolute; right: -24px; top: 6px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 8px var(--green);
+      border: 2px solid var(--bg);
+    }
+    .tl-year {
+      font-size: 11px; font-weight: 700; color: var(--green);
+      letter-spacing: 1px; margin-bottom: 4px;
+    }
+    .tl-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .tl-body  { font-size: 13px; color: var(--text-body); }
+
+    /* ── VALUES ── */
+    .values-section {
+      padding: 90px 80px;
+      background: var(--bg-section);
+      border-top: 1px solid var(--green-border);
+      border-bottom: 1px solid var(--green-border);
+      text-align: center;
+    }
+
+    .sec-title { font-size: 34px; font-weight: 800; margin-bottom: 12px; }
+    .sec-sub   { font-size: 15px; color: var(--text-body); margin-bottom: 56px; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+    .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+
+    .value-card {
+      background: var(--bg-card);
+      border: 1px solid var(--green-border);
+      border-radius: 16px; padding: 32px 26px;
+      text-align: right; position: relative; overflow: hidden;
+      transition: border-color .25s, transform .25s, box-shadow .25s;
+    }
+    .value-card::after {
+      content: ''; position: absolute;
+      top: 0; right: 0; width: 3px; height: 0;
+      background: var(--green); transition: height .3s;
+    }
+    .value-card:hover { border-color: rgba(34,197,94,.35); transform: translateY(-5px); box-shadow: 0 16px 48px rgba(0,0,0,.45); }
+    .value-card:hover::after { height: 100%; }
+
+    .value-icon { font-size: 36px; margin-bottom: 16px; display: block; }
+    .value-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+    .value-card p  { font-size: 14px; color: var(--text-body); line-height: 1.75; }
+
+    /* ── CONTACT ── */
+    .contact-section {
+      padding: 90px 80px;
+      border-top: 1px solid var(--green-border);
+      border-bottom: 1px solid var(--green-border);
+    }
+
+    .contact-inner {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 70px; align-items: start;
+    }
+
+    .contact-channels {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .channel-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--green-border);
+      border-radius: 12px; text-decoration: none;
+      color: var(--text);
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+    .channel-card:hover {
+      border-color: rgba(34,197,94,.4);
+      transform: translateX(-4px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.3);
+    }
+    .channel-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: var(--green-glow); border: 1px solid var(--green-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .channel-title { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: .5px; margin-bottom: 2px; }
+    .channel-val   { font-size: 14px; font-weight: 700; color: var(--text); }
+
+    /* contact form */
+    .contact-form-box {
+      background: var(--bg-card);
+      border: 1px solid var(--green-border);
+      border-radius: 16px; padding: 28px;
+    }
+
+    .cfg { margin-bottom: 14px; }
+    .cfg label {
+      display: block; font-size: 12px; font-weight: 700;
+      color: var(--text-muted); letter-spacing: .5px; margin-bottom: 7px;
+    }
+    .cfg input, .cfg select, .cfg textarea {
+      width: 100%; padding: 12px 14px;
+      background: #0a1a10; border: 1.5px solid var(--green-border);
+      border-radius: 10px; color: var(--text);
+      font-family: 'Vazirmatn', sans-serif; font-size: 14px;
+      outline: none; transition: border-color .2s, box-shadow .2s;
+      text-align: right;
+    }
+    .cfg input::placeholder, .cfg textarea::placeholder { color: var(--text-muted); }
+    .cfg input:focus, .cfg select:focus, .cfg textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.08);
+    }
+    .cfg select option { background: #0d1f17; }
+    .cfg textarea { resize: vertical; min-height: 110px; line-height: 1.7; }
+
+    .contact-submit {
+      width: 100%; padding: 14px;
+      background: var(--green); color: #04100a;
+      border: none; border-radius: 10px;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 16px; font-weight: 800; cursor: pointer;
+      transition: background .2s, box-shadow .2s, transform .15s;
+      box-shadow: 0 0 20px rgba(34,197,94,.25);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 4px;
+    }
+    .contact-submit:hover { background: var(--green-dim); box-shadow: 0 0 32px rgba(34,197,94,.4); transform: translateY(-1px); }
+
+    .c-spinner {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2.5px solid rgba(4,16,10,.3); border-top-color: #04100a;
+      animation: spin .7s linear infinite; display: none;
+    }
+    .contact-submit.loading .c-spinner { display: block; }
+    .contact-submit.loading #cBtnText { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .contact-success {
+      display: none; margin-top: 14px; padding: 12px 16px;
+      background: var(--green-glow); border: 1px solid var(--green-border);
+      border-radius: 10px; font-size: 14px; font-weight: 600;
+      color: var(--green); text-align: center;
+    }
+    .contact-success.show { display: block; }
+
+    /* ── STATS ── */
+    .stats-section {
+      padding: 80px;
+      background: var(--bg-section);
+      border-top: 1px solid var(--green-border);
+      border-bottom: 1px solid var(--green-border);
+    }
+
+    .stats-inner { display: flex; justify-content: space-around; gap: 20px; }
+
+    .stat-item { text-align: center; flex: 1; position: relative; }
+    .stat-item:not(:last-child)::after {
+      content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      height: 50px; width: 1px; background: var(--green-border);
+    }
+    .stat-item h3 { font-size: 46px; font-weight: 900; color: var(--green); line-height: 1; margin-bottom: 8px; }
+    .stat-item p  { font-size: 14px; color: var(--text-body); font-weight: 500; }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 90px 80px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: ''; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(34,197,94,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,.025) 1px, transparent 1px);
+      background-size: 52px 52px;
+      pointer-events: none;
+    }
+    .cta-section::after {
+      content: ''; position: absolute;
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse, rgba(34,197,94,.05), transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 { font-size: 40px; font-weight: 900; margin-bottom: 14px; position: relative; z-index: 1; }
+    .cta-section h2 em { font-style: normal; color: var(--green); }
+    .cta-section p  { font-size: 16px; color: var(--text-body); margin-bottom: 36px; position: relative; z-index: 1; }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 26px;
+      background: var(--bg);
+      border-top: 1px solid var(--green-border);
+      color: var(--text-muted); font-size: 13px;
+    }
+    footer span { color: var(--green); }
+
+    /* ── ANIMATIONS ── */
+    .reveal {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.show { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1100px) {
+      .header { padding: 0 40px; }
+      .about-hero { padding: 70px 40px; flex-direction: column-reverse; gap: 40px; }
+      .about-hero h1 { font-size: 36px; }
+      .story-section { padding: 70px 40px; grid-template-columns: 1fr; gap: 50px; }
+      .values-section, .cta-section { padding: 70px 40px; }
+      .contact-section { padding: 70px 40px; }
+      .contact-inner { grid-template-columns: 1fr; gap: 40px; }
+      .stats-section { padding: 60px 40px; }
+      .field-line { margin: 0 40px; }
+    }
+
+    @media (max-width: 768px) {
+      .header { flex-direction: column; height: auto; padding: 18px 20px; gap: 14px; }
+      .nav { flex-wrap: wrap; justify-content: center; gap: 12px 20px; }
+      .about-hero { padding: 50px 24px; }
+      .about-hero h1 { font-size: 28px; }
+      .field-line { margin: 0 24px; }
+      .story-section { padding: 60px 24px; }
+      .values-section, .cta-section { padding: 60px 24px; }
+      .values-grid { grid-template-columns: 1fr; }
+      .stats-section { padding: 50px 24px; }
+      .stats-inner { flex-direction: column; align-items: center; gap: 30px; }
+      .stat-item::after { display: none; }
+      .sec-title { font-size: 26px; }
+    }
+
+    @media (max-width: 480px) {
+      .about-hero h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="header">
+    <div class="logo">
+      <a href="./index.html"><span class="logo-dot"></span>سانس‌یار</a>
+    </div>
+    <ul class="nav">
+      <li><a href="./index.html">خانه</a></li>
+      <li><a href="./gallery.html">زمین‌ها</a></li>
+      <li><a href="./reserve.html">رزرو</a></li>
+      <li><a href="./about.html" class="active">درباره ما</a></li>
+    </ul>
+    <a class="btn" href="./login.html">ورود</a>
+  </header>
+
+  <!-- HERO -->
+  <section class="about-hero">
+    <div class="hero-text">
+      <div class="sec-eyebrow"><span></span>درباره سانس‌یار</div>
+      <h1>ما فوتبال رو <em>آسون‌تر</em><br>کردیم</h1>
+      <p>سانس‌یار در سال ۱۴۰۲ با یک هدف ساده شروع کرد: رزرو زمین فوتبال نباید سخت باشه. امروز بیش از ۱۲۰۰ نفر هر هفته از پلتفرم ما استفاده می‌کنن.</p>
+      <div class="hero-actions">
+        <a class="btn" href="./reserve.html">رزرو همین الان</a>
+        <a class="btn-ghost" href="./gallery.html">مشاهده زمین‌ها</a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="about-pitch-card">
+        <div class="apc-pitch">
+          <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="ag" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#0d3320"/>
+                <stop offset="100%" stop-color="#051a0e"/>
+              </linearGradient>
+            </defs>
+            <rect width="400" height="180" fill="url(#ag)"/>
+            <rect x="12" y="10" width="376" height="160" rx="3" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
+            <line x1="200" y1="10" x2="200" y2="170" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
+            <circle cx="200" cy="90" r="36" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
+            <circle cx="200" cy="90" r="4" fill="rgba(255,255,255,.22)"/>
+            <rect x="12" y="50" width="56" height="80" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1.2"/>
+            <rect x="332" y="50" width="56" height="80" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="apc-body">
+          <div class="apc-row"><span class="apc-l">تأسیس</span><span class="apc-r">بهار ۱۴۰۲</span></div>
+          <div class="apc-row"><span class="apc-l">زمین فعال</span><span class="apc-r green">۵۰+ زمین</span></div>
+          <div class="apc-row"><span class="apc-l">کاربران</span><span class="apc-r green">۱۲۰۰+ نفر</span></div>
+          <div class="apc-row"><span class="apc-l">رزروهای موفق</span><span class="apc-r green">۸۰۰۰+</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="field-line"></div>
+
+  <!-- STORY -->
+  <section class="story-section">
+    <div class="reveal">
+      <span class="story-label">داستان ما</span>
+      <h2 class="story-title">از <em>یه مشکل</em><br>تا یه راه‌حل</h2>
+      <div class="story-body">
+        <p>همه چیز از یه بازی فوتبال شروع شد. یه جمعه عصر، چهار نفر از دوستام خواستیم زمین رزرو کنیم. نصف روز گذشتیم پشت تلفن، سایت‌های مختلف، و پیام‌های اینستاگرام — آخرش هم ناامید شدیم.</p>
+        <p>همون شب تصمیم گرفتم یه چیزی بسازم که این درد رو حل کنه. سانس‌یار جواب اون مشکل بود.</p>
+      </div>
+    </div>
+
+    <div class="timeline reveal">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">اردیبهشت ۱۴۰۲</div>
+        <div class="tl-title">ایده اولیه</div>
+        <div class="tl-body">ایده سانس‌یار شکل گرفت و اولین نسخه اثبات مفهوم ساخته شد.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">شهریور ۱۴۰۲</div>
+        <div class="tl-title">اولین زمین</div>
+        <div class="tl-body">اولین زمین شریک به پلتفرم اضافه شد. اولین رزرو در همون هفته انجام شد.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">زمستان ۱۴۰۲</div>
+        <div class="tl-title">رشد سریع</div>
+        <div class="tl-body">با ۱۰۰۰ کاربر اول، پلتفرم گسترش پیدا کرد و امکانات جدید اضافه شد.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">۱۴۰۴ — اکنون</div>
+        <div class="tl-title">۵۰ زمین، ۱۲۰۰+ کاربر</div>
+        <div class="tl-body">امروز بزرگترین پلتفرم رزرو زمین فوتبال در شهر هستیم و هنوز داریم رشد می‌کنیم.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="field-line"></div>
+
+  <!-- VALUES -->
+  <section class="values-section">
+    <span class="story-label" style="display:block;text-align:center;margin-bottom:10px">ارزش‌های ما</span>
+    <h2 class="sec-title">چی ما رو متفاوت می‌کنه</h2>
+    <p class="sec-sub">این سه اصل از روز اول راهنمای هر تصمیمی که گرفتیم بوده.</p>
+    <div class="values-grid">
+      <div class="value-card reveal">
+        <span class="value-icon">⚡</span>
+        <h3>سرعت بدون توضیح</h3>
+        <p>رزرو در ۶۰ ثانیه یه استاندارد نیست، یه قول‌ه. هر چیزی که این تجربه رو کند کنه، حذف میشه.</p>
+      </div>
+      <div class="value-card reveal">
+        <span class="value-icon">🤝</span>
+        <h3>صادقانه با کاربر</h3>
+        <p>بدون کمیسیون پنهان، بدون قیمت‌گذاری مبهم. آنچه می‌بینی همونیه که پرداخت می‌کنی.</p>
+      </div>
+      <div class="value-card reveal">
+        <span class="value-icon">🏟️</span>
+        <h3>کیفیت زمین اول</h3>
+        <p>هر زمینی که به پلتفرم اضافه میشه، اول بازدید حضوری میشه. استاندارد پایین‌تر قبول نداریم.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="field-line"></div>
+
+  <!-- CONTACT -->
+  <section class="contact-section">
+    <div class="contact-inner">
+
+      <div class="contact-info reveal">
+        <span class="story-label">تماس با ما</span>
+        <h2 class="story-title">سوال یا پیشنهادی<br><em>داری؟</em></h2>
+        <p style="font-size:15px;color:var(--text-body);line-height:1.85;margin-bottom:36px">
+          سانس‌یار یه پروژه یه‌نفره‌ست که با عشق به فوتبال ساخته شده. هر بازخوردی برام ارزشمنده — چه ایده باشه، چه مشکل، چه همکاری.
+        </p>
+        <div class="contact-channels">
+          <a class="channel-card" href="mailto:info@sansyar.ir">
+            <div class="channel-icon">✉️</div>
+            <div>
+              <div class="channel-title">ایمیل</div>
+              <div class="channel-val">mahyarsalehi63@gmail.com</div>
+            </div>
+          </a>
+          <a class="channel-card" href="tel:+989120000000">
+            <div class="channel-icon">📞</div>
+            <div>
+              <div class="channel-title">تلفن</div>
+              <div class="channel-val" style="direction:ltr;text-align:right">09337752754</div>
+            </div>
+          </a>
+          <a class="channel-card" href="https://instagram.com/sansyar" target="_blank" rel="noopener">
+            <div class="channel-icon" style="background:linear-gradient(135deg,rgba(131,58,180,.25),rgba(34,197,94,.15));border-color:rgba(131,58,180,.3)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="2" width="20" height="20" rx="5.5" stroke="#c855f7" stroke-width="1.8"/>
+                <circle cx="12" cy="12" r="4.3" stroke="#c855f7" stroke-width="1.8"/>
+                <circle cx="17.3" cy="6.7" r="1.2" fill="#c855f7"/>
+              </svg>
+            </div>
+            <div>
+              <div class="channel-title">اینستاگرام</div>
+              <div class="channel-val" style="color:#c855f7">Mahyar.Sal6</div>
+            </div>
+          </a>
+          <a class="channel-card" href="https://t.me/Mahyar.Sal6" target="_blank" rel="noopener">
+            <div class="channel-icon" style="background:rgba(33,150,243,.15);border-color:rgba(33,150,243,.3)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M22 2L11 13" stroke="#2196f3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22 2L15 22l-4-9-9-4 20-7z" stroke="#2196f3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="channel-title">تلگرام</div>
+              <div class="channel-val" style="color:#2196f3">@Mahyar_Sal6</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="contact-form-wrap reveal">
+        <div class="contact-form-box">
+          <h3 style="font-size:18px;font-weight:800;margin-bottom:6px">پیام مستقیم</h3>
+          <p style="font-size:13px;color:var(--text-body);margin-bottom:24px">معمولاً ظرف ۲۴ ساعت جواب میدم.</p>
+          <div class="cfg">
+            <label>نام</label>
+            <input type="text" id="cName" placeholder="اسمت چیه؟">
+          </div>
+          <div class="cfg">
+            <label>ایمیل یا موبایل</label>
+            <input type="text" id="cContact" placeholder="برای پاسخ‌دهی">
+          </div>
+          <div class="cfg">
+            <label>موضوع</label>
+            <select id="cSubject">
+              <option value="">انتخاب کن</option>
+              <option>گزارش مشکل</option>
+              <option>پیشنهاد ویژگی جدید</option>
+              <option>همکاری در ثبت زمین</option>
+              <option>سوال درباره رزرو</option>
+              <option>سایر</option>
+            </select>
+          </div>
+          <div class="cfg">
+            <label>پیام</label>
+            <textarea id="cMsg" placeholder="هر چیزی که میخوای بگی..." rows="4"></textarea>
+          </div>
+          <button class="contact-submit" id="cSubmitBtn" onclick="sendContact()">
+            <span id="cBtnText">ارسال پیام ←</span>
+            <div class="c-spinner" id="cSpinner"></div>
+          </button>
+          <div class="contact-success" id="cSuccess">
+            <span>✓</span> پیامت رسید! به زودی جواب میدم.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-section">
+    <div class="stats-inner">
+      <div class="stat-item reveal">
+        <h3>۵۰+</h3>
+        <p>زمین فعال</p>
+      </div>
+      <div class="stat-item reveal">
+        <h3>۱۲۰۰+</h3>
+        <p>کاربر فعال</p>
+      </div>
+      <div class="stat-item reveal">
+        <h3>۸۰۰۰+</h3>
+        <p>رزرو موفق</p>
+      </div>
+      <div class="stat-item reveal">
+        <h3>۴.۹</h3>
+        <p>امتیاز کاربران از ۵</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>آماده‌ای <em>بازی کنی؟</em></h2>
+    <p>همین الان زمین مورد نظرت رو پیدا کن و رزرو کن.</p>
+    <div class="cta-actions">
+      <a class="btn" href="./reserve.html">رزرو همین الان</a>
+      <a class="btn-ghost" href="./gallery.html">مشاهده زمین‌ها</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© ۱۴۰۴ تمامی حقوق متعلق به <span>سانس‌یار</span> است.</p>
+  </footer>
+
+<!-- EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  // ── EmailJS config ──
+  // ۱. برو emailjs.com و حساب بساز
+  // ۲. یه Email Service اضافه کن (Gmail و...)
+  // ۳. یه Template بساز با متغیرهای: from_name, from_contact, subject, message
+  // ۴. مقادیر زیر رو با اطلاعات خودت جایگزین کن:
+  const EJS_PUBLIC_KEY  = 'HyeGNT0Bb6JKOptnp';   // Account > API Keys
+  const EJS_SERVICE_ID  = 'service_9f54yac';   // Email Services
+  const EJS_TEMPLATE_ID = 'template_pfxkoiw';  // Email Templates
+  emailjs.init({ publicKey: EJS_PUBLIC_KEY });
+
+  // ── Scroll reveal ──
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('show'); });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── Send contact form via EmailJS ──
+  async function sendContact() {
+    const name    = document.getElementById('cName').value.trim();
+    const contact = document.getElementById('cContact').value.trim();
+    const subject = document.getElementById('cSubject').value;
+    const msg     = document.getElementById('cMsg').value.trim();
+
+    // Basic validation
+    if (!name) { shake('cName'); return; }
+    if (!contact) { shake('cContact'); return; }
+    if (!subject) { shake('cSubject'); return; }
+    if (!msg) { shake('cMsg'); return; }
+
+    const btn = document.getElementById('cSubmitBtn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
+        from_name:    name,
+        from_contact: contact,
+        subject:      subject,
+        message:      msg,
+      });
+
+      // Success
+      btn.style.display = 'none';
+      document.getElementById('cSuccess').classList.add('show');
+
+      // Clear form
+      ['cName','cContact','cMsg'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('cSubject').value = '';
+
+    } catch (err) {
+      console.error('EmailJS error:', err);
+
+      // Fallback: open mailto
+      const mailBody = encodeURIComponent(
+        `نام: ${name}
+تماس: ${contact}
+موضوع: ${subject}
+
+${msg}`
+      );
+      window.location.href = `mailto:info@sansyar.ir?subject=${encodeURIComponent(subject)}&body=${mailBody}`;
+
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  // ── Shake animation for empty fields ──
+  function shake(id) {
+    const el = document.getElementById(id);
+    el.style.borderColor = '#ef4444';
+    el.style.animation = 'shake .4s ease';
+    setTimeout(() => {
+      el.style.animation = '';
+      el.style.borderColor = '';
+    }, 500);
+    el.focus();
+  }
+</script>
+<style>
+  @keyframes shake {
+    0%,100%{ transform:translateX(0) }
+    20%{ transform:translateX(-6px) }
+    40%{ transform:translateX(6px) }
+    60%{ transform:translateX(-4px) }
+    80%{ transform:translateX(4px) }
+  }
+</style>
+</body>
+</html>
