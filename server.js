@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
-const { post } = require('./pitches');
 
 dotenv.config();
 
@@ -36,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'front')));
 
 // ── ROUTES ──
 app.use('/api/auth', require('./auth'));
-app.use('/api/pitches', require('./pitches')); // 👈 چک کن اسم دقیق فایل
+app.use('/api/pitches', require('./pitches'));
 app.use('/api/reservations', require('./reservations'));
 
 // ── HEALTH ──
