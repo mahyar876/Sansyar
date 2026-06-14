@@ -46,7 +46,7 @@ if (document.getElementById('pitchesGrid')) {
 
   // ── GLOBAL STATE (قابل دسترس از همه جا) ──
   window.SNS = {
-    API:           'https://sansyar.onrender.com',
+    API:           'http://localhost:5000',
     typeLabel:     { futsal: 'فوتسال', grass: 'چمن' },
     pitches:       [],
     filteredList:  [],
