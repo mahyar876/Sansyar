@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سانس‌یار پنالتی</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#07100d;--card:#0d1f17;
+      --green:#22c55e;--gd:#16a34a;
+      --glow:rgba(34,197,94,.14);--border:rgba(34,197,94,.22);
+      --text:#f0faf4;--body:#7fa98c;--muted:#3d6650;
+      --red:#ef4444;--amber:#f59e0b;
+    }
+    html,body{height:100%;direction:rtl;background:var(--bg);color:var(--text);
+      font-family:'Vazirmatn',sans-serif;-webkit-font-smoothing:antialiased;
+      user-select:none;overflow:hidden}
+    .game{display:flex;flex-direction:column;height:100vh}
+
+    /* ── TOPBAR ── */
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 16px;height:48px;flex-shrink:0;
+      background:rgba(7,16,13,.97);border-bottom:1px solid var(--border)
+    }
+    .topbar-l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800}
+    .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);
+      box-shadow:0 0 8px var(--green);animation:lp 1.4s ease-in-out infinite}
+    @keyframes lp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+    .diff-pill{padding:3px 12px;border-radius:20px;font-size:11px;font-weight:800;border:1px solid}
+    .pill-easy  {background:rgba(34,197,94,.15);color:var(--green);border-color:rgba(34,197,94,.3)}
+    .pill-medium{background:rgba(245,158,11,.15);color:var(--amber);border-color:rgba(245,158,11,.3)}
+    .pill-hard  {background:rgba(239,68,68,.15); color:var(--red);  border-color:rgba(239,68,68,.3)}
+
+    /* ── SCORE ── */
+    .score-bar{
+      display:flex;height:50px;flex-shrink:0;
+      background:rgba(7,16,13,.9);border-bottom:1px solid var(--border)
+    }
+    .sc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      border-left:1px solid var(--border);gap:1px}
+    .sc:last-child{border-left:none}
+    .sc-n{font-size:20px;font-weight:900;line-height:1}
+    .sc-n.g{color:var(--green)}.sc-n.m{color:var(--red)}.sc-n.s{color:var(--body)}
+    .sc-l{font-size:10px;color:var(--muted);font-weight:600}
+
+    /* ── FIELD ── */
+    .field{
+      position:relative;flex:1;overflow:hidden;
+      background:linear-gradient(170deg,#0b3014 0%,#071a09 100%);
+      display:flex;align-items:center;justify-content:center;
+    }
+    /* grass stripes */
+    .field::before{content:'';position:absolute;inset:0;
+      background:repeating-linear-gradient(90deg,
+        rgba(34,197,94,.022) 0,rgba(34,197,94,.022) 52px,
+        transparent 52px,transparent 104px)}
+    /* field lines SVG */
+    .field-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+    /* ── GOAL ── */
+    .goal{
+      position:absolute;
+      top:8%;left:50%;transform:translateX(-50%);
+      width:min(62vw,320px);height:min(28vh,140px);
+      overflow:visible;
+    }
+    .goal-frame{
+      position:absolute;inset:0;
+      border:3px solid rgba(255,255,255,.88);border-bottom:none;border-radius:2px 2px 0 0;
+      box-shadow:0 0 20px rgba(255,255,255,.18),inset 0 0 20px rgba(255,255,255,.04)
+    }
+    /* net grid — فقط داخل دروازه */
+    .goal-net{
+      position:absolute;inset:0;
+      overflow:hidden; pointer-events:none;
+      background:
+        repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(255,255,255,.07) 18px,rgba(255,255,255,.07) 19px),
+        repeating-linear-gradient(90deg,transparent,transparent 22px,rgba(255,255,255,.07) 22px,rgba(255,255,255,.07) 23px);
+      z-index:1;
+    }
+    /* goal flash on score */
+    .goal.flash .goal-frame{animation:goalFlash .5s ease}
+    @keyframes goalFlash{0%,100%{box-shadow:0 0 20px rgba(255,255,255,.18)}
+      50%{box-shadow:0 0 60px rgba(34,197,94,.9),0 0 30px rgba(34,197,94,.5)}}
+
+    /* shot zones — invisible grid over goal */
+    .shot-zones{
+      position:absolute;inset:0;
+      display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;
+      cursor:crosshair;z-index:20
+    }
+    .sz{transition:background .12s}
+    .sz:hover:not(.disabled){background:rgba(34,197,94,.1)}
+    .sz.disabled{cursor:not-allowed;pointer-events:none}
+
+    /* zone hint labels (shown on hover) */
+    .zone-hint{
+      position:absolute;inset:0;
+      display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;
+      pointer-events:none;z-index:19;opacity:0;transition:opacity .2s
+    }
+    .goal:hover .zone-hint:not(.hide){opacity:1}
+    .zh{
+      display:flex;align-items:center;justify-content:center;
+      font-size:10px;color:rgba(255,255,255,.25);font-weight:700
+    }
+
+    /* ── KEEPER ── */
+    .keeper-wrap{
+      position:absolute;
+      bottom:0; left:0; right:0;
+      height:100%;
+      pointer-events:none; z-index:10;
+      display:flex; align-items:flex-end; justify-content:center;
+      padding-bottom:4px;
+    }
+    .keeper{
+      position:relative; width:44px;
+      transition:transform 0.08s ease;
+      display:flex; flex-direction:column; align-items:center;
+    }
+    /* idle sway */
+    .keeper.idle{animation:keeperIdle 1.6s ease-in-out infinite}
+    @keyframes keeperIdle{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+
+    /* dive animations */
+    .keeper.dive-left  {animation:diveL var(--dive-dur) cubic-bezier(.2,.8,.3,1) forwards}
+    .keeper.dive-right {animation:diveR var(--dive-dur) cubic-bezier(.2,.8,.3,1) forwards}
+    .keeper.dive-up    {animation:diveU var(--dive-dur) cubic-bezier(.2,.9,.3,1) forwards}
+    .keeper.dive-left-up {animation:diveLU var(--dive-dur) cubic-bezier(.2,.9,.3,1) forwards}
+    .keeper.dive-right-up{animation:diveRU var(--dive-dur) cubic-bezier(.2,.9,.3,1) forwards}
+    .keeper.stand-center {animation:standC var(--dive-dur) cubic-bezier(.2,.9,.3,1) forwards}
+
+    @keyframes diveL  {to{transform:translateX(-100px) rotate(35deg)}}
+    @keyframes diveR  {to{transform:translateX(100px)  rotate(-35deg)}}
+    @keyframes diveU  {to{transform:translateY(-38px)  scaleX(1.1)}}
+    @keyframes diveLU {to{transform:translate(-75px,-30px) rotate(25deg)}}
+    @keyframes diveRU {to{transform:translate(75px,-30px)  rotate(-25deg)}}
+    @keyframes standC {to{transform:translateY(-6px) scaleX(1.08)}}
+
+    .keeper-head{
+      width:28px;height:28px;border-radius:50%;
+      background:#f5f0e8;border:2px solid #d4c9a8;flex-shrink:0;
+      position:relative;z-index:2
+    }
+    .keeper-body{
+      width:40px;height:28px;border-radius:8px 8px 0 0;
+      background:linear-gradient(150deg,#f59e0b,#d97706);
+      margin-top:-3px;display:flex;align-items:center;justify-content:center
+    }
+    .keeper-num{font-size:11px;font-weight:900;color:#04100a}
+    /* gloves */
+    .keeper-gloves{
+      position:absolute;bottom:18px;
+      display:flex;gap:50px
+    }
+    .glove{
+      width:12px;height:12px;border-radius:50%;
+      background:#e8e8e8;border:1px solid #ccc;
+      transition:transform .15s
+    }
+    .keeper.dive-left  .glove.left,
+    .keeper.dive-left-up .glove.left {transform:translateX(-8px) translateY(-4px)}
+    .keeper.dive-right .glove.right,
+    .keeper.dive-right-up .glove.right{transform:translateX(8px) translateY(-4px)}
+    .keeper.dive-up    .glove.left,
+    .keeper.dive-up    .glove.right,
+    .keeper.stand-center .glove.left,
+    .keeper.stand-center .glove.right{transform:translateY(-10px)}
+
+    /* ── BALL ── */
+    .ball{
+      position:absolute;
+      width:28px;height:28px;border-radius:50%;
+      background:radial-gradient(circle at 35% 35%,#fff 0%,#c8c8c8 55%,#888 100%);
+      border:1.5px solid rgba(0,0,0,.3);
+      box-shadow:0 3px 10px rgba(0,0,0,.7);
+      left:50%;bottom:24%;
+      transform:translateX(-50%);
+      pointer-events:none;z-index:15
+    }
+    .ball.shoot{
+      transition:
+        left   var(--ball-dur) cubic-bezier(.25,.46,.45,.94),
+        bottom var(--ball-dur) cubic-bezier(.18,.89,.32,1.28),
+        transform var(--ball-dur) linear,
+        width  var(--ball-dur) ease,
+        height var(--ball-dur) ease
+    }
+    /* ball shadow */
+    .ball-shadow{
+      position:absolute;
+      width:22px;height:8px;border-radius:50%;
+      background:rgba(0,0,0,.4);filter:blur(3px);
+      left:50%;bottom:23.5%;transform:translateX(-50%);
+      pointer-events:none;z-index:14;
+      transition:all var(--ball-dur) ease
+    }
+    .ball.shoot~.ball-shadow,.ball-shadow.moving{
+      width:14px;opacity:.2
+    }
+
+    /* power meter */
+    .power-wrap{
+      position:absolute;bottom:12%;left:50%;transform:translateX(-50%);
+      display:none;align-items:center;gap:10px;z-index:30;
+      background:rgba(7,16,13,.75);border:1px solid var(--border);
+      border-radius:30px;padding:6px 14px;backdrop-filter:blur(8px)
+    }
+    .power-wrap.show{display:flex}
+    .power-label{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap}
+    .power-track{width:100px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+    .power-fill{height:100%;width:0;border-radius:3px;
+      background:linear-gradient(90deg,var(--green),#f59e0b,#ef4444);
+      transition:width .04s linear}
+
+    /* aim crosshair */
+    .aim{
+      position:absolute;pointer-events:none;z-index:25;
+      transform:translate(-50%,-50%);opacity:0;transition:opacity .1s
+    }
+    .aim.show{opacity:1}
+    .aim-ring{
+      width:26px;height:26px;border-radius:50%;
+      border:1.5px solid rgba(34,197,94,.7);
+      box-shadow:0 0 10px rgba(34,197,94,.4)
+    }
+    .aim-cross{
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      width:14px;height:14px
+    }
+    .aim-cross::before,.aim-cross::after{
+      content:'';position:absolute;background:rgba(34,197,94,.8);border-radius:1px
+    }
+    .aim-cross::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
+    .aim-cross::after {height:2px;width:100%;top:50%; transform:translateY(-50%)}
+
+    /* instruct */
+    .instr{
+      position:absolute;bottom:14%;left:50%;transform:translateX(-50%);
+      font-size:12px;color:var(--muted);white-space:nowrap;
+      pointer-events:none;z-index:5;
+      background:rgba(7,16,13,.6);padding:5px 14px;border-radius:20px;
+      border:1px solid var(--border);backdrop-filter:blur(4px)
+    }
+
+    /* ── MSG TOAST (گوشه پایین، کوچیک، بدون مزاحمت) ── */
+    .msg-ov{
+      position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+      z-index:40;pointer-events:none;
+      opacity:0;transition:opacity .2s;
+      width:max-content;max-width:90%;
+    }
+    .msg-ov.show{opacity:1;animation:toastIn .35s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes toastIn{from{transform:translateX(-50%) translateY(20px) scale(.85);opacity:0}to{transform:translateX(-50%) translateY(0) scale(1);opacity:1}}
+    .msg-box{
+      background:rgba(7,16,13,.92);border:1px solid var(--border);
+      border-radius:40px;padding:10px 22px;
+      display:flex;align-items:center;gap:10px;
+      backdrop-filter:blur(16px);
+      box-shadow:0 8px 32px rgba(0,0,0,.6);
+    }
+    .msg-emoji{font-size:22px;line-height:1}
+    .msg-title{font-size:15px;font-weight:800}
+    .msg-title.goal{color:var(--green)}.msg-title.save{color:var(--amber)}.msg-title.miss{color:var(--red)}
+    .msg-sub{font-size:12px;color:var(--body);margin-right:2px}
+
+    /* saved highlight on goal */
+    .save-flash{
+      position:absolute;inset:0;background:rgba(245,158,11,.12);
+      pointer-events:none;opacity:0;transition:opacity .1s;z-index:35
+    }
+    .save-flash.show{opacity:1}
+
+    /* ── FINAL ── */
+    .final-ov{
+      position:absolute;inset:0;z-index:50;
+      background:rgba(7,16,13,.88);backdrop-filter:blur(8px);
+      display:none;align-items:center;justify-content:center
+    }
+    .final-ov.show{display:flex}
+    .final-box{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:20px;padding:34px 28px;text-align:center;min-width:270px;
+      box-shadow:0 32px 80px rgba(0,0,0,.8);
+      animation:popIn .4s cubic-bezier(.34,1.56,.64,1)
+    }
+    .final-emoji{font-size:52px;display:block;margin-bottom:10px}
+    .final-title{font-size:22px;font-weight:900;margin-bottom:4px}
+    .final-score{font-size:44px;font-weight:900;color:var(--green);margin-bottom:4px}
+    .final-sub{font-size:13px;color:var(--body);margin-bottom:24px;line-height:1.6}
+    .final-btn{
+      width:100%;padding:13px;background:var(--green);color:#04100a;
+      border:none;border-radius:10px;font-family:'Vazirmatn',sans-serif;
+      font-size:15px;font-weight:800;cursor:pointer;
+      box-shadow:0 0 20px rgba(34,197,94,.3);transition:background .2s;margin-bottom:10px
+    }
+    .final-btn:hover{background:var(--gd)}
+    .final-reserve{display:block;font-size:12px;color:var(--muted);text-decoration:none;transition:color .2s}
+    .final-reserve:hover{color:var(--green)}
+    .diff-suggest{
+      margin:10px 0;padding:8px 14px;border-radius:8px;font-size:12px;
+      background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);
+      color:var(--amber);cursor:pointer;transition:all .2s
+    }
+    .diff-suggest:hover{background:rgba(245,158,11,.2)}
+
+    /* ── DIFFICULTY SCREEN ── */
+    .diff-screen{
+      position:absolute;inset:0;z-index:60;
+      background:rgba(7,16,13,.95);backdrop-filter:blur(10px);
+      display:flex;align-items:center;justify-content:center;padding:16px
+    }
+    .diff-screen.hidden{display:none}
+    .diff-box{width:100%;max-width:420px}
+    .diff-title{font-size:26px;font-weight:900;text-align:center;margin-bottom:6px}
+    .diff-title em{font-style:normal;color:var(--green)}
+    .diff-subtitle{font-size:13px;color:var(--body);text-align:center;margin-bottom:24px;line-height:1.7}
+    .diff-cards{display:flex;flex-direction:column;gap:10px}
+    .diff-card{
+      padding:16px 18px;border-radius:14px;cursor:pointer;
+      border:1.5px solid;transition:all .2s;
+      display:flex;align-items:flex-start;gap:14px
+    }
+    .diff-card.easy  {background:rgba(34,197,94,.06); border-color:rgba(34,197,94,.25)}
+    .diff-card.medium{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.25)}
+    .diff-card.hard  {background:rgba(239,68,68,.06); border-color:rgba(239,68,68,.25)}
+    .diff-card:hover.easy  {background:rgba(34,197,94,.14); border-color:rgba(34,197,94,.5)}
+    .diff-card:hover.medium{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.5)}
+    .diff-card:hover.hard  {background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.5)}
+    .diff-icon{font-size:28px;flex-shrink:0;margin-top:2px}
+    .diff-info{flex:1;min-width:0}
+    .diff-name{font-size:15px;font-weight:800;margin-bottom:3px}
+    .diff-card.easy   .diff-name{color:var(--green)}
+    .diff-card.medium .diff-name{color:var(--amber)}
+    .diff-card.hard   .diff-name{color:var(--red)}
+    .diff-desc{font-size:12px;color:var(--body);line-height:1.6}
+    .diff-stats{
+      display:flex;gap:6px;margin-top:6px;flex-wrap:wrap
+    }
+    .diff-stat{
+      font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;
+      background:rgba(255,255,255,.06);color:var(--muted)
+    }
+
+    /* ── BOTTOM BAR ── */
+    .bottom-bar{
+      height:54px;display:flex;align-items:center;
+      justify-content:space-between;padding:0 16px;flex-shrink:0;
+      background:rgba(7,16,13,.97);border-top:1px solid var(--border)
+    }
+    .restart-btn{
+      padding:8px 16px;border-radius:8px;background:var(--glow);
+      color:var(--green);border:1px solid var(--border);
+      font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s
+    }
+    .restart-btn:hover{background:var(--green);color:#04100a}
+    .shots-dots{display:flex;gap:5px;align-items:center}
+    .sdot{
+      width:11px;height:11px;border-radius:50%;
+      border:1.5px solid var(--muted);background:transparent;transition:all .2s
+    }
+    .sdot.gd{background:var(--green);border-color:var(--green);box-shadow:0 0 6px var(--green)}
+    .sdot.md{background:var(--red);border-color:var(--red)}
+    .sdot.sd{background:var(--amber);border-color:var(--amber)}
+    .share-btn{
+      padding:8px 14px;border-radius:8px;background:transparent;
+      color:var(--body);border:1px solid var(--border);
+      font-family:'Vazirmatn',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s
+    }
+    .share-btn:hover{border-color:var(--green);color:var(--green)}
+  </style>
+</head>
+<body>
+<div class="game">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-l">
+      <div class="live-dot"></div>
+      سانس‌یار پنالتی
+    </div>
+    <div id="diffPill" class="diff-pill pill-easy">آسان</div>
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-bar">
+    <div class="sc"><div class="sc-n s" id="sShot">۰</div><div class="sc-l">شوت</div></div>
+    <div class="sc"><div class="sc-n m" id="sMiss">۰</div><div class="sc-l">خطا</div></div>
+    <div class="sc"><div class="sc-n g" id="sGoal">۰</div><div class="sc-l">گل</div></div>
+  </div>
+
+  <!-- FIELD -->
+  <div class="field" id="field">
+
+    <!-- field lines -->
+    <svg class="field-lines" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="380" height="280" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1.5"/>
+      <line x1="200" y1="10" x2="200" y2="290" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+      <circle cx="200" cy="150" r="38" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+      <rect x="110" y="200" width="180" height="80" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.2"/>
+      <rect x="155" y="248" width="90" height="42" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+      <path d="M145,300 Q200,235 255,300" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.2"/>
+      <circle cx="200" cy="250" r="2.5" fill="rgba(255,255,255,.18)"/>
+    </svg>
+
+    <!-- GOAL -->
+    <div class="goal" id="goal">
+      <div class="goal-net"></div>
+      <div class="goal-frame"></div>
+
+      <!-- KEEPER داخل دروازه -->
+      <div class="keeper-wrap" id="keeperWrap">
+        <div class="keeper idle" id="keeper">
+          <div class="keeper-head"></div>
+          <div class="keeper-body"><div class="keeper-num">۱</div></div>
+        </div>
+      </div>
+
+      <!-- zone hints -->
+      <div class="zone-hint" id="zoneHint">
+        <div class="zh">↖</div><div class="zh">↑</div><div class="zh">↗</div>
+        <div class="zh">←</div><div class="zh">⦿</div><div class="zh">→</div>
+      </div>
+
+      <!-- shot zones -->
+      <div class="shot-zones" id="shotZones">
+        <div class="sz" data-z="0"></div>
+        <div class="sz" data-z="1"></div>
+        <div class="sz" data-z="2"></div>
+        <div class="sz" data-z="3"></div>
+        <div class="sz" data-z="4"></div>
+        <div class="sz" data-z="5"></div>
+      </div>
+    </div>
+
+    <!-- BALL -->
+    <div class="ball-shadow" id="shadow"></div>
+    <div class="ball" id="ball"></div>
+
+    <!-- AIM -->
+    <div class="aim" id="aim">
+      <div class="aim-ring"></div>
+      <div class="aim-cross"></div>
+    </div>
+
+    <!-- POWER -->
+    <div class="power-wrap" id="powerWrap">
+      <span class="power-label">قدرت</span>
+      <div class="power-track"><div class="power-fill" id="powerFill"></div></div>
+    </div>
+
+    <!-- INSTR -->
+    <div class="instr" id="instr">روی دروازه کلیک کن تا شوت بزنی ⚽</div>
+
+    <!-- SAVE FLASH -->
+    <div class="save-flash" id="saveFlash"></div>
+
+    <!-- MSG TOAST -->
+    <div class="msg-ov" id="msgOv">
+      <div class="msg-box">
+        <span class="msg-emoji" id="msgEmoji"></span>
+        <span class="msg-title" id="msgTitle"></span>
+        <span class="msg-sub"   id="msgSub"></span>
+      </div>
+    </div>
+
+    <!-- FINAL -->
+    <div class="final-ov" id="finalOv">
+      <div class="final-box">
+        <span class="final-emoji" id="fEmoji">🏆</span>
+        <div class="final-title" id="fTitle"></div>
+        <div class="final-score" id="fScore"></div>
+        <div class="final-sub"   id="fSub"></div>
+        <div class="diff-suggest" id="fSuggest" style="display:none" onclick="suggestDiff()"></div>
+        <button class="final-btn" onclick="openDiffScreen()">بازی مجدد 🔄</button>
+        <a class="final-reserve" href="./reserve.html">رزرو زمین واقعی ←</a>
+      </div>
+    </div>
+
+    <!-- DIFFICULTY SCREEN -->
+    <div class="diff-screen" id="diffScreen">
+      <div class="diff-box">
+        <div class="diff-title">سانس‌یار <em>پنالتی</em></div>
+        <div class="diff-subtitle">
+          درجه سختی رو انتخاب کن.<br>
+          واکنش دروازه‌بان و هوش اون تغییر می‌کنه!
+        </div>
+        <div class="diff-cards">
+
+          <div class="diff-card easy" onclick="startGame('easy')">
+            <div class="diff-icon">🟢</div>
+            <div class="diff-info">
+              <div class="diff-name">آسان — مبتدی</div>
+              <div class="diff-desc">دروازه‌بان کُند و رندم عمل می‌کنه.<br>واکنش با تأخیر زیاد، دایو تصادفی، شانس دفع پایین.</div>
+              <div class="diff-stats">
+                <span class="diff-stat">⏱ واکنش کُند</span>
+                <span class="diff-stat">🎲 دایو رندم</span>
+                <span class="diff-stat">🥅 دفع ۲۵٪</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="diff-card medium" onclick="startGame('medium')">
+            <div class="diff-icon">🟡</div>
+            <div class="diff-info">
+              <div class="diff-name">متوسط — نیمه‌حرفه‌ای</div>
+              <div class="diff-desc">دروازه‌بان گاهی جهت شوت رو حدس می‌زنه.<br>وسط خطرناکه، گوشه‌ها نسبتاً امن‌ترن.</div>
+              <div class="diff-stats">
+                <span class="diff-stat">⏱ واکنش معقول</span>
+                <span class="diff-stat">🧠 حدس ۴۰٪</span>
+                <span class="diff-stat">🥅 دفع ۴۵٪</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="diff-card hard" onclick="startGame('hard')">
+            <div class="diff-icon">🔴</div>
+            <div class="diff-info">
+              <div class="diff-name">سخت — حرفه‌ای</div>
+              <div class="diff-desc">دروازه‌بان الگوی شوتت رو می‌خونه و پیش‌بینی می‌کنه.<br>فقط گوشه‌های بالا شانس واقعی دارن!</div>
+              <div class="diff-stats">
+                <span class="diff-stat">⚡ واکنش سریع</span>
+                <span class="diff-stat">🧠 حدس ۶۵٪</span>
+                <span class="diff-stat">🥅 دفع ۶۵٪</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom-bar">
+    <button class="restart-btn" onclick="openDiffScreen()">تغییر سختی</button>
+    <div class="shots-dots" id="dots">
+      <div class="sdot" id="d0"></div>
+      <div class="sdot" id="d1"></div>
+      <div class="sdot" id="d2"></div>
+      <div class="sdot" id="d3"></div>
+      <div class="sdot" id="d4"></div>
+    </div>
+    <button class="share-btn" onclick="shareScore()">اشتراک‌گذاری</button>
+  </div>
+
+</div>
+<script>
+/* ════════════════════════════════════════
+   UTILITIES
+════════════════════════════════════════ */
+const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+const $ = id => document.getElementById(id);
+const rand = (a,b) => Math.random()*(b-a)+a;
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+
+/* ════════════════════════════════════════
+   DIFFICULTY CONFIGS
+   منطق واقعی:
+   - keeper قبل از شوت نمی‌داند کجا می‌روی
+   - بر اساس سختی، احتمال "حدس درست" دارد
+   - اگر حدس درست نزد → دایو کاملاً اشتباه
+   - حتی اگه درست رفت، بر اساس سختی و zone دفع می‌کنه
+════════════════════════════════════════ */
+const DIFF_CFG = {
+  easy: {
+    label:'آسان', pillClass:'pill-easy',
+    /* واکنش: چند ms بعد از شوت keeper حرکت کنه (بیشتر = کندتر) */
+    reactionMs: 260,
+    /* احتمال اینکه جهت درست رو انتخاب کنه */
+    guessChance: 0.15,
+    /* اگه جهت درست رفت، با چه احتمالی دفع می‌کنه */
+    saveIfAligned: 0.32,
+    /* bonus دفع برای وسط (zone 1 و 4) */
+    centerBonus: 0.08,
+    /* شانس دفع شگفت‌انگیز حتی اگه اشتباه رفت */
+    luckyBlock: 0.02,
+  },
+  medium: {
+    label:'متوسط', pillClass:'pill-medium',
+    reactionMs: 140,
+    guessChance: 0.40,
+    saveIfAligned: 0.52,
+    centerBonus: 0.18,
+    luckyBlock: 0.05,
+  },
+  hard: {
+    label:'سخت', pillClass:'pill-hard',
+    reactionMs: 55,
+    guessChance: 0.65,
+    saveIfAligned: 0.70,
+    centerBonus: 0.28,
+    luckyBlock: 0.10,
+    /* hard only: اگه یه zone رو ۲ بار پشت سر هم زدی، keeper اونجا می‌مونه */
+    antiPattern: true,
+  },
+};
+
+/*
+  ZONE LAYOUT (از دید بازیکن جلوی دروازه):
+  [0] بالا-چپ   [1] بالا-وسط   [2] بالا-راست
+  [3] پایین-چپ  [4] پایین-وسط  [5] پایین-راست
+
+  مختصات توپ در دروازه (% از عرض و ارتفاع goalEl):
+  x: از چپ, y: از بالا
+*/
+/* در RTL صفحه، چپ/راست از دید بازیکن برعکس CSS میشه
+   zone 0 = بالا-چپ (از دید بازیکن) = x:87 در CSS (چون RTL)
+   zone 2 = بالا-راست (از دید بازیکن) = x:13 در CSS */
+const ZONE_POS = {
+  0:{x:87,y:18}, 1:{x:50,y:18}, 2:{x:13,y:18},
+  3:{x:87,y:74}, 4:{x:50,y:74}, 5:{x:13,y:74},
+};
+
+/*
+  برای هر zone، دروازه‌بان باید به کدام سمت بره تا بتونه دفع کنه:
+  - 'left'  = keeper به چپ (zone‌های سمت چپ از دید ضربه‌زننده = راست دروازه)
+  - 'right' = keeper به راست (zone‌های سمت راست از دید ضربه‌زننده)
+  - 'center-up' = keeper بالا می‌پره (وسط بالا)
+  - 'center-down' = keeper وسط می‌مونه (وسط پایین)
+*/
+/* keeper هم باید به سمت درست بره - در RTL برعکس میشه
+   zone 0 = بالا-چپ از دید بازیکن → keeper باید راست بره (در CSS) */
+const ZONE_KEEPER = {
+  0:'right-up', 1:'center-up', 2:'left-up',
+  3:'right',    4:'center',    5:'left',
+};
+
+/* کلاس CSS دایو keeper برای هر جهت */
+const DIVE_CLASS = {
+  'left':       'dive-left',
+  'left-up':    'dive-left-up',
+  'right':      'dive-right',
+  'right-up':   'dive-right-up',
+  'center-up':  'dive-up',
+  'center':     'stand-center',
+};
+
+/* جهت‌های رندم که keeper می‌تونه بره وقتی حدس نمی‌زنه */
+const ALL_DIRS = ['left','left-up','right','right-up','center-up','center'];
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+const MAX = 5;
+let diff = 'easy', cfg = DIFF_CFG.easy;
+let shots=0, goals=0, misses=0;
+let busy=false;
+let shotLog=[]; // تاریخچه zone‌های زده‌شده
+
+/* ════════════════════════════════════════
+   DOM REFS
+════════════════════════════════════════ */
+const ballEl    = $('ball');
+const shadowEl  = $('shadow');
+const keeperEl  = $('keeper');
+const goalEl    = $('goal');
+const fieldEl   = $('field');
+const aimEl     = $('aim');
+const instrEl   = $('instr');
+const msgOv     = $('msgOv');
+const finalOv   = $('finalOv');
+const diffScr   = $('diffScreen');
+const sfEl      = $('saveFlash');
+const pwWrap    = $('powerWrap');
+const pwFill    = $('powerFill');
+let   pwTimer   = null;
+
+/* ════════════════════════════════════════
+   DIFFICULTY
+════════════════════════════════════════ */
+function openDiffScreen(){
+  finalOv.classList.remove('show');
+  diffScr.classList.remove('hidden');
+  resetState(false);
+}
+
+function startGame(d){
+  diff = d; cfg = DIFF_CFG[d];
+  const pill = $('diffPill');
+  pill.textContent = cfg.label;
+  pill.className   = 'diff-pill ' + cfg.pillClass;
+  diffScr.classList.add('hidden');
+  resetState(true);
+}
+
+/* ════════════════════════════════════════
+   RESET
+════════════════════════════════════════ */
+function resetState(full){
+  shots=goals=misses=0;
+  shotLog=[];
+  busy=false;
+  if(full){
+    updateScore();
+    for(let i=0;i<MAX;i++){const d=$('d'+i);if(d)d.className='sdot';}
+    resetBall();
+    resetKeeper();
+    msgOv.classList.remove('show');
+    sfEl.classList.remove('show');
+    instrEl.style.display='';
+    enableZones();
+    /* keeper idle sway */
+    keeperEl.className='keeper idle';
+  }
+}
+
+/* ════════════════════════════════════════
+   KEEPER AI — قلب بازی
+   منطق:
+   1. بر اساس cfg.guessChance تصمیم می‌گیره آیا جهت درست رو حدس بزنه
+   2. در hard با antiPattern، اگه دو zone یکسان پشت سر هم اومد → اون zone رو "می‌خونه"
+   3. اگه جهت اشتباه رفت → فقط cfg.luckyBlock شانس دفع دارد
+   4. اگه جهت درست رفت → cfg.saveIfAligned (+ centerBonus برای وسط)
+════════════════════════════════════════ */
+function computeAction(z){
+  const correctDir = ZONE_KEEPER[z];
+  let chosenDir;
+
+  /* anti-pattern در hard */
+  if(cfg.antiPattern && shotLog.length>=2){
+    const last  = shotLog[shotLog.length-1];
+    const prev  = shotLog[shotLog.length-2];
+    if(last===z && prev===z){
+      /* سه بار همونجا؟ ۸۰٪ اونجا می‌مونه */
+      chosenDir = Math.random()<0.80 ? correctDir : pick(ALL_DIRS);
+    } else if(last===z){
+      /* دو بار → ۵۵٪ */
+      chosenDir = Math.random()<0.55 ? correctDir : pick(ALL_DIRS);
+    } else {
+      chosenDir = Math.random()<cfg.guessChance ? correctDir : pick(ALL_DIRS);
+    }
+  } else {
+    chosenDir = Math.random()<cfg.guessChance ? correctDir : pick(ALL_DIRS);
+  }
+
+  /* محاسبه احتمال دفع */
+  const aligned = (chosenDir === correctDir);
+  let saveP = 0;
+  if(aligned){
+    saveP = cfg.saveIfAligned;
+    /* وسط‌ها راحت‌تر دفع می‌شن */
+    if(z===1||z===4) saveP += cfg.centerBonus;
+    /* بالا سخت‌تر — keeper باید بپره */
+    if(z===0||z===2) saveP -= 0.08;
+    if(z===1)        saveP -= 0.05;
+  } else {
+    saveP = cfg.luckyBlock;
+  }
+
+  saveP = Math.max(0, Math.min(0.90, saveP));
+  return { dir: chosenDir, saved: Math.random()<saveP };
+}
+
+/* ════════════════════════════════════════
+   SHOOT
+════════════════════════════════════════ */
+document.getElementById('shotZones').addEventListener('click', function(e){
+  if(busy||shots>=MAX) return;
+  const sz=e.target.closest('.sz');
+  if(!sz) return;
+  instrEl.style.display='none';
+  aimEl.classList.remove('show');
+  disableZones();
+  shoot(parseInt(sz.dataset.z));
+});
+
+function shoot(z){
+  busy=true; shots++;
+  shotLog.push(z);
+  updateScore();
+
+  /* محاسبه نتیجه (keeper هنوز نمی‌داند) */
+  const action = computeAction(z);
+
+  /* بال شروع می‌کنه */
+  animBall(z);
+
+  /* keeper بعد از تأخیر واکنش نشون می‌ده */
+  setTimeout(()=>{ animKeeper(action.dir); }, cfg.reactionMs);
+
+  /* نتیجه بعد از رسیدن بال */
+  setTimeout(()=>{ applyResult(z, action.saved); }, 540);
+
+  /* ریست و ادامه */
+  setTimeout(()=>{
+    msgOv.classList.remove('show');
+    sfEl.classList.remove('show');
+    resetBall();
+    resetKeeper();
+    if(shots>=MAX){ setTimeout(showFinal,350); }
+    else{ busy=false; enableZones(); }
+  }, 2200);
+}
+
+/* ════════════════════════════════════════
+   BALL ANIMATION — طبیعی‌ترین حرکت ممکن
+   - از نقطه پنالتی (پایین میانه field) به سمت zone
+   - کوچک‌تر میشه (perspective)
+   - می‌چرخه
+════════════════════════════════════════ */
+function animBall(z){
+  const gr = goalEl.getBoundingClientRect();
+  const fr = fieldEl.getBoundingClientRect();
+  const t  = ZONE_POS[z];
+
+  /* مقصد نسبت به field */
+  const destX = (gr.left-fr.left) + gr.width*t.x/100;
+  const destY = (gr.top -fr.top)  + gr.height*t.y/100;
+
+  /* موقعیت شروع: نقطه پنالتی (وسط پایین) */
+  const startX = fr.width/2;
+  const startY = fr.height*0.74;
+
+  /* left همیشه نسبت به سمت چپ کانتینر حساب میشه (حتی در RTL) */
+  const dx = (destX - startX);
+  /* bottom-based: */
+  const startBot = fr.height - startY;
+  const destBot  = fr.height - destY;
+
+  /* مدت پرواز بر اساس قدرت (ثابت برای حالا) */
+  const dur = 0.50;
+  ballEl.style.setProperty('--ball-dur', dur+'s');
+  fieldEl.style.setProperty('--ball-dur', dur+'s');
+
+  /* یه کم spin برای واقعی‌تر شدن */
+  const spin = (Math.random()<0.5?1:-1) * (Math.floor(rand(300,720)));
+
+  ballEl.classList.add('shoot');
+  ballEl.style.left      = 'calc(50% + '+ dx +'px)';
+  ballEl.style.bottom    = destBot + 'px';
+  ballEl.style.transform = `translateX(-50%) scale(0.55) rotate(${spin}deg)`;
+  ballEl.style.width     = '22px';
+  ballEl.style.height    = '22px';
+
+  /* shadow محو میشه */
+  shadowEl.classList.add('moving');
+}
+
+/* ════════════════════════════════════════
+   KEEPER ANIMATION
+════════════════════════════════════════ */
+const DIVE_DUR = { easy:0.38, medium:0.28, hard:0.20 };
+
+function animKeeper(dir){
+  keeperEl.classList.remove('idle');
+  keeperEl.style.setProperty('--dive-dur', DIVE_DUR[diff]+'s');
+  /* حذف کلاس‌های قبلی */
+  for(const c of Object.values(DIVE_CLASS)) keeperEl.classList.remove(c);
+  void keeperEl.offsetWidth; /* reflow */
+  keeperEl.classList.add(DIVE_CLASS[dir]||'stand-center');
+}
+
+function resetKeeper(){
+  for(const c of Object.values(DIVE_CLASS)) keeperEl.classList.remove(c);
+  keeperEl.classList.remove('idle');
+  void keeperEl.offsetWidth;
+  keeperEl.classList.add('idle');
+}
+
+/* ════════════════════════════════════════
+   RESULT
+════════════════════════════════════════ */
+function applyResult(z, saved){
+  if(saved){
+    misses++;
+    sfEl.classList.add('show');
+    const saveLines=[
+      ['🧤','دفع شد!','دروازه‌بان خوندتت!'],
+      ['🦅','پرواز کرد!','چه رفلکسی داره!'],
+      ['🧤','نه عزیزم!','یه زاویه دیگه امتحان کن'],
+      ['✋','بلاک!','کیپر دیوار بود!'],
+    ];
+    const r=pick(saveLines);
+    showMsg('save',r[0],r[1],r[2]);
+    markDot(shots-1,'sd');
+    /* goal flash خاموشه */
+    goalEl.classList.remove('flash');
+  } else {
+    goals++;
+    goalEl.classList.add('flash');
+    setTimeout(()=>goalEl.classList.remove('flash'),500);
+    const gl={
+      0:[['↖️','گوشه بالا-چپ!','دقیق!'],['💎','گوشه سخت!','کلاسیک!']],
+      1:[['⬆️','بالا وسط!','جسور بودی!'],['🎯','مستقیم بالا!','']],
+      2:[['↗️','گوشه بالا-راست!','ضربه دقیق!'],['🔥','گوشه!','کیپر شانسی نداشت!']],
+      3:[['⬅️','پایین-چپ!','زمینی!'],['💪','گوشه پایین!','']],
+      4:[['⚽','گل وسط!','ریسک کردی!'],['😤','جرات داشتی!','وسط رو زدی!']],
+      5:[['➡️','پایین-راست!','تمیز!'],['🚀','گل!','چه شوتی!']],
+    };
+    const r=pick(gl[z]||[['⚽','گل!','']]);
+    showMsg('goal',r[0],r[1],r[2]);
+    markDot(shots-1,'gd');
+  }
+  updateScore();
+}
+
+/* ════════════════════════════════════════
+   FINAL SCREEN
+════════════════════════════════════════ */
+function showFinal(){
+  const pct=goals/MAX;
+  let emoji,title,sub;
+  if     (pct===1.0){emoji='🏆';title='پنج از پنج — افسانه!';         sub=`${fa(goals)} گل کامل! حرفه‌ای واقعی هستی.`}
+  else if(pct>=0.8) {emoji='🌟';title='عالی بودی!';                    sub=`${fa(goals)} از ${fa(MAX)} گل — تقریباً بی‌نقص!`}
+  else if(pct>=0.6) {emoji='👏';title='خوب بود!';                      sub=`${fa(goals)} از ${fa(MAX)} گل — ادامه بده!`}
+  else if(pct>=0.4) {emoji='😅';title='تمرین لازمه!';                  sub=`${fa(goals)} از ${fa(MAX)} گل — میشه بهتر کرد`}
+  else if(pct>0)    {emoji='😬';title='دروازه‌بان برنده شد!';          sub=`فقط ${fa(goals)} گل از ${fa(MAX)} شوت...`}
+  else              {emoji='🤦';title='صفر گل؟!';                       sub='دروازه‌بان کامل بُرد!'}
+
+  $('fEmoji').textContent = emoji;
+  $('fTitle').textContent = title;
+  $('fScore').textContent = fa(goals)+' از '+fa(MAX);
+  $('fSub').textContent   = sub;
+
+  /* پیشنهاد سختی */
+  const suggest = $('fSuggest');
+  if(pct===1.0 && diff!=='hard'){
+    suggest.style.display='block';
+    suggest.textContent='🔥 حالا سختی بالاتر رو امتحان کن!';
+    suggest._next = diff==='easy'?'medium':'hard';
+  } else if(pct<0.4 && diff!=='easy'){
+    suggest.style.display='block';
+    suggest.textContent='💡 سختی پایین‌تر رو امتحان کن!';
+    suggest._next = diff==='hard'?'medium':'easy';
+  } else {
+    suggest.style.display='none';
+  }
+
+  finalOv.classList.add('show');
+}
+
+function suggestDiff(){
+  const next=$('fSuggest')._next;
+  if(next) startGame(next);
+}
+
+/* ════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════ */
+function showMsg(type,emoji,title,sub){
+  $('msgEmoji').textContent=emoji;
+  $('msgTitle').textContent=title;
+  $('msgTitle').className='msg-title '+type;
+  $('msgSub').textContent=sub;
+  msgOv.classList.add('show');
+}
+
+function resetBall(){
+  ballEl.classList.remove('shoot');
+  ballEl.style.left='50%';
+  ballEl.style.bottom='24%';
+  ballEl.style.transform='translateX(-50%)';
+  ballEl.style.width='28px';
+  ballEl.style.height='28px';
+  shadowEl.classList.remove('moving');
+  void ballEl.offsetWidth;
+}
+
+function updateScore(){
+  $('sShot').textContent=fa(shots);
+  $('sGoal').textContent=fa(goals);
+  $('sMiss').textContent=fa(misses);
+}
+
+function markDot(i,cls){
+  const d=$('d'+i);
+  if(d)d.className='sdot '+cls;
+}
+
+function disableZones(){
+  document.querySelectorAll('.sz').forEach(z=>z.classList.add('disabled'));
+  $('zoneHint').classList.add('hide');
+}
+function enableZones(){
+  document.querySelectorAll('.sz').forEach(z=>z.classList.remove('disabled'));
+  $('zoneHint').classList.remove('hide');
+}
+
+/* ── AIM ── */
+document.getElementById('shotZones').addEventListener('mousemove',function(e){
+  if(busy)return;
+  const fr=fieldEl.getBoundingClientRect();
+  aimEl.style.left=(e.clientX-fr.left)+'px';
+  aimEl.style.top =(e.clientY-fr.top )+'px';
+  aimEl.classList.add('show');
+});
+document.getElementById('shotZones').addEventListener('mouseleave',function(){
+  aimEl.classList.remove('show');
+});
+
+/* touch support */
+document.getElementById('shotZones').addEventListener('touchstart',function(e){
+  e.preventDefault();
+  if(busy||shots>=MAX)return;
+  instrEl.style.display='none';
+  const touch=e.touches[0];
+  const goalR=goalEl.getBoundingClientRect();
+  const rx=(touch.clientX-goalR.left)/goalR.width;
+  const ry=(touch.clientY-goalR.top)/goalR.height;
+  const col=rx<0.333?0:(rx<0.667?1:2);
+  const row=ry<0.5?0:1;
+  const z=row*3+col;
+  disableZones();
+  shoot(z);
+},{passive:false});
+
+/* share */
+function shareScore(){
+  const t=`توی سانس‌یار پنالتی (${cfg.label}) — ${fa(goals)} گل از ${fa(MAX)} شوت! ⚽🏆`;
+  if(navigator.share) navigator.share({title:'سانس‌یار پنالتی',text:t,url:location.href});
+  else if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>alert('کپی شد!'));
+}
+
+/* INIT */
+diffScr.classList.remove('hidden');
+</script>
+</body>
+</html>
