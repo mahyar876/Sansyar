@@ -37,6 +37,63 @@ if (document.getElementById('topBtn')) {
   const topBtn = document.getElementById("topBtn");
   window.addEventListener("scroll", () => { topBtn.classList.toggle("active", window.scrollY > 500); });
   topBtn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); });
+
+  // ── Show "حساب من" if logged in ──
+  (function() {
+    const user = sessionStorage.getItem('sns_user');
+    const loginBtn = document.querySelector('.header .btn');
+    if (user && loginBtn) {
+      loginBtn.textContent = 'حساب من';
+      loginBtn.href = './profile.html';
+      loginBtn.classList.remove('btn-ghost');
+      loginBtn.style.background = 'transparent';
+      loginBtn.style.color = 'var(--green)';
+      loginBtn.style.border = '1.5px solid var(--green)';
+      loginBtn.style.boxShadow = 'none';
+    }
+  })();
+
+  // ── LIVE COUNTER ──
+  (function() {
+    const countEl = document.getElementById('liveCount');
+    if (!countEl) return;
+    let current = Math.floor(Math.random() * 5) + 2;
+    function updateCount() {
+      countEl.textContent = numFa(current);
+      const delta = Math.random() < 0.5 ? 1 : -1;
+      current = Math.max(1, Math.min(9, current + delta));
+    }
+    updateCount();
+    setInterval(updateCount, Math.floor(Math.random() * 4000) + 4000);
+  })();
+
+  // ── TIMER PILL ──
+  (function() {
+    const secEl = document.getElementById('timerSec');
+    if (!secEl) return;
+    function randomTime() { return Math.floor(Math.random() * 31) + 45; }
+    let target = randomTime();
+    let current = 60;
+    secEl.textContent = numFa(current);
+    setInterval(function() {
+      if (current === target) {
+        setTimeout(function() { target = randomTime(); }, 2000);
+        return;
+      }
+      current += current < target ? 1 : -1;
+      secEl.textContent = numFa(current);
+    }, 800);
+  })();
+
+  // ── SET HERO DATE ──
+  (function() {
+    const dateEl = document.getElementById('heroDate');
+    if (!dateEl) return;
+    try {
+      const opts = { weekday:'long', month:'long', day:'numeric' };
+      dateEl.textContent = new Date().toLocaleDateString('fa-IR', opts);
+    } catch(e) {}
+  })();
 }
 
 // =========================
@@ -496,6 +553,7 @@ if (document.getElementById('pitchesGrid')) {
     var loginBtn = document.querySelector('.header .btn');
     if (user && loginBtn) {
       loginBtn.textContent = 'حساب من';
+      loginBtn.href = './profile.html';
       loginBtn.style.background = 'transparent';
       loginBtn.style.color = 'var(--green)';
       loginBtn.style.border = '1.5px solid var(--green)';
