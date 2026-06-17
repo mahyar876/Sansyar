@@ -71,9 +71,10 @@
           </select>
         </div>
 
-        <div class="filter-group">
+        <div class="filter-group" style="position:relative">
           <label>تاریخ</label>
-          <input type="date" id="dateFilter">
+          <input type="text" id="dateFilter" readonly placeholder="انتخاب تاریخ" style="cursor:pointer" onclick="toggleJalaliPicker()">
+          <div id="jalaliPicker" class="jalali-picker"></div>
         </div>
 
         <div class="filter-group">
@@ -135,11 +136,11 @@
         <div class="form-group">
           <label>تعداد نفرات</label>
           <select id="userCount">
-            <option value="5">۵ نفر</option>
-            <option value="6">۶ نفر</option>
-            <option value="7">۷ نفر</option>
-            <option value="8">۸ نفر</option>
             <option value="10">۱۰ نفر</option>
+            <option value="12">۱۲ نفر</option>
+            <option value="14">۱۴ نفر</option>
+            <option value="16">۱۶ نفر</option>
+            <option value="22">۲۲ نفر</option>
           </select>
         </div>
 
@@ -211,7 +212,7 @@
 
   <!-- FOOTER -->
   <footer>
-    <p>© ۱۴۰۴ تمامی حقوق متعلق به <span>سانس‌یار</span> است.</p>
+    <p>© ۱۴۰۵ تمامی حقوق متعلق به <span>سانس‌یار</span> است.</p>
   </footer>
 
   <script src="./script.js"></script>
@@ -222,12 +223,11 @@
       const loginBtn = document.querySelector('.header .btn');
       if (user && loginBtn) {
         loginBtn.textContent = 'حساب من';
-        loginBtn.href = '#';
+        loginBtn.href = './profile.html';
         loginBtn.style.background = 'transparent';
         loginBtn.style.color = 'var(--green)';
         loginBtn.style.border = '1.5px solid var(--green)';
         loginBtn.style.boxShadow = 'none';
-        const API = 'http://localhost:5000';
       }
     })();
   </script>
