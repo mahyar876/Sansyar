@@ -509,7 +509,7 @@
 
 <script>
 /* ── DATA ── */
-const pitches = [
+const DEFAULT_PITCHES = [
   {
     id:1, name:'سالن فوتسال آریا', type:'futsal', size:5,
     color1:'#0d3320', color2:'#051a0e',
@@ -565,6 +565,35 @@ const pitches = [
     featured: false
   },
 ];
+
+// خوندن از localStorage ادمین و ادغام با داده‌های پیش‌فرض
+function loadPitchesFromAdmin() {
+  try {
+    const saved = localStorage.getItem('sansyar_admin_state');
+    if (!saved) return DEFAULT_PITCHES;
+    const state = JSON.parse(saved);
+    if (!state.pitches || !state.pitches.length) return DEFAULT_PITCHES;
+    return DEFAULT_PITCHES.map((def, i) => {
+      const admin = state.pitches[i];
+      if (!admin) return def;
+      return {
+        ...def,
+        name: admin.name || def.name,
+        type: admin.type || def.type,
+        size: admin.size || def.size,
+        price: admin.price || def.price,
+        address: admin.address || def.address,
+        tags: admin.tags && admin.tags.length ? admin.tags : def.tags,
+        avail: admin.takenSlots ? admin.takenSlots.filter(t => !t).length : def.avail,
+        isActive: admin.isActive !== undefined ? admin.isActive : true,
+      };
+    }).filter(p => p.isActive !== false);
+  } catch(e) {
+    return DEFAULT_PITCHES;
+  }
+}
+
+const pitches = loadPitchesFromAdmin();
 
 const typeLabel = { futsal:'فوتسال', grass:'چمن' };
 
@@ -783,6 +812,20 @@ document.addEventListener('keydown', e => {
 
 /* ── INIT ── */
 render();
+
+/* ── Show "حساب من" if logged in ── */
+(function() {
+  const user = sessionStorage.getItem('sns_user');
+  const loginBtn = document.querySelector('.header .btn');
+  if (user && loginBtn) {
+    loginBtn.textContent = 'حساب من';
+    loginBtn.href = './profile.html';
+    loginBtn.style.background = 'transparent';
+    loginBtn.style.color = 'var(--green)';
+    loginBtn.style.border = '1.5px solid var(--green)';
+    loginBtn.style.boxShadow = 'none';
+  }
+})();
 </script>
 </body>
 </html>
