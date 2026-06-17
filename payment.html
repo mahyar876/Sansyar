@@ -350,7 +350,7 @@
     .order-total .tl { font-size:13px; color:var(--body); font-weight:600; }
     .order-total .tr {
       font-size:20px; font-weight:900; color:var(--green);
-      direction:ltr;
+      direction:rtl;
     }
 
     .security-badges {
@@ -522,43 +522,52 @@
             </div>
           </div>
 
-          <!-- Card Password -->
+          <!-- Card Password — toggle رمز دوم / رمز پویا -->
           <div class="fg">
-            <label>رمز دوم کارت (رمز اینترنتی)</label>
-            <input type="password" id="cardPass" placeholder="رمز اینترنتی کارت"
-                   autocomplete="current-password">
-            <div class="err-msg" id="cardPassErr">رمز اینترنتی الزامی است</div>
-          </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+              <label style="margin-bottom:0">رمز کارت</label>
+              <div style="display:flex;gap:4px;background:#0a1a10;border:1px solid var(--border);border-radius:8px;padding:3px">
+                <button type="button" id="tabStatic" onclick="switchPassTab('static')"
+                  style="padding:4px 12px;border-radius:6px;font-family:'Vazirmatn',sans-serif;font-size:11px;font-weight:700;border:none;cursor:pointer;background:var(--green);color:#04100a;transition:all .2s">رمز دوم</button>
+                <button type="button" id="tabDynamic" onclick="switchPassTab('dynamic')"
+                  style="padding:4px 12px;border-radius:6px;font-family:'Vazirmatn',sans-serif;font-size:11px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--body);transition:all .2s">رمز پویا</button>
+              </div>
+            </div>
+            <div id="staticPassWrap">
+              <input type="password" id="cardPass" placeholder="رمز دوم (اینترنتی) کارت"
+                     autocomplete="current-password">
+            </div>
 
-          <!-- OTP Section (shown after first submit) -->
-          <div class="otp-section" id="otpSection">
-            <div class="otp-header">
-              🔑 رمز یک‌بار مصرف
-              <span class="otp-timer" id="otpTimer">۲:۰۰</span>
+            <!-- رمز پویا: بدون فیلد موبایل — بانک شماره را از قبل دارد -->
+            <div id="dynamicPassWrap" style="display:none">
+              <button type="button" id="sendDynBtn" onclick="sendDynOTP()"
+                style="width:100%;padding:13px;background:var(--glow);color:var(--green);border:1px solid var(--border);border-radius:10px;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s"
+                onmouseover="this.style.background='var(--green)';this.style.color='#04100a'"
+                onmouseout="this.style.background='var(--glow)';this.style.color='var(--green)'">
+                📲 ارسال رمز پویا
+              </button>
+
+              <div id="dynOtpWrap" style="display:none;margin-top:12px">
+                <div style="font-size:12px;color:var(--body);margin-bottom:8px;text-align:center">
+                  رمز پویا به <strong id="dynMaskedPhone" style="color:var(--text)">موبایل ثبت‌شده</strong> ارسال شد
+                </div>
+                <input type="text" id="dynOtp" placeholder="رمز پویای دریافتی" maxlength="6"
+                       style="direction:ltr;text-align:center;letter-spacing:4px;font-size:16px;width:100%" inputmode="numeric">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;color:var(--muted)">
+                  <span id="dynResendCountdown">ارسال مجدد پس از <strong id="dynResendSec">۶۰</strong> ثانیه</span>
+                  <button type="button" id="dynResendBtn" onclick="sendDynOTP(true)"
+                    style="display:none;background:none;border:none;color:var(--green);font-family:'Vazirmatn',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-decoration:underline">ارسال مجدد</button>
+                </div>
+              </div>
             </div>
-            <p style="font-size:12px;color:var(--body);margin-bottom:14px">
-              رمز ۶ رقمی به شماره موبایل
-              <strong id="maskedPhone" style="color:var(--text)">09••••••••</strong>
-              ارسال شد
-            </p>
-            <div class="otp-inputs" id="otpInputs">
-              <input class="otp-input" maxlength="1" inputmode="numeric">
-              <input class="otp-input" maxlength="1" inputmode="numeric">
-              <input class="otp-input" maxlength="1" inputmode="numeric">
-              <input class="otp-input" maxlength="1" inputmode="numeric">
-              <input class="otp-input" maxlength="1" inputmode="numeric">
-              <input class="otp-input" maxlength="1" inputmode="numeric">
-            </div>
-            <div class="otp-resend">
-              <span id="resendCountdown">ارسال مجدد پس از <strong id="resendSec">۶۰</strong> ثانیه</span>
-              <button id="resendBtn" onclick="resendOTP()">ارسال مجدد رمز</button>
-            </div>
+
+            <div class="err-msg" id="cardPassErr">رمز کارت الزامی است</div>
           </div>
 
           <!-- Pay Button -->
           <button class="pay-btn" id="payBtn" onclick="handlePay()">
             <div class="spinner" id="spinner"></div>
-            <span class="btn-text" id="btnText">پرداخت — <span id="btnAmount">۱۸۰,۰۰۰</span> تومان</span>
+            <span class="btn-text" id="btnText">پرداخت — <span id="btnAmount">۱۸۰ هزار تومان</span></span>
           </button>
 
           <a class="cancel-link" href="./reserve.html">انصراف و بازگشت به رزرو</a>
@@ -648,6 +657,13 @@ function getParam(key) {
 function numFa(n) {
   return n.toString().replace(/\d/g, d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 }
+function priceFaWords(n) {
+  n = parseInt(n) || 0;
+  if (n % 1000 === 0) {
+    return numFa((n / 1000).toLocaleString('en')) + ' هزار تومان';
+  }
+  return numFa(n.toLocaleString('en')) + ' تومان';
+}
 
 /* ── POPULATE ORDER ── */
 const orderData = {
@@ -670,15 +686,9 @@ document.getElementById('orderPhone').textContent     = orderData.phone;
 document.getElementById('orderCount').textContent     = orderData.count + ' نفر';
 
 const amountNum = parseInt(orderData.amount) || 180000;
-const amountFa  = numFa(amountNum.toLocaleString('en'));
-document.getElementById('orderTotal').textContent = amountFa + ' تومان';
+const amountFa  = priceFaWords(amountNum);
+document.getElementById('orderTotal').textContent = amountFa;
 document.getElementById('btnAmount').textContent  = amountFa;
-
-// mask phone
-if (orderData.phone && orderData.phone !== '—') {
-  const masked = orderData.phone.replace(/(\d{4})\d{4}(\d{2})/, '$1••••$2');
-  document.getElementById('maskedPhone').textContent = masked;
-}
 
 /* ── CARD NUMBER FORMATTING ── */
 document.getElementById('cardNum').addEventListener('input', function(e) {
@@ -706,8 +716,74 @@ document.getElementById('cvv').addEventListener('input', function() {
   clearErr('cvv');
 });
 
+/* ── PASS TAB TOGGLE ── */
+let passMode = 'static';
+function switchPassTab(mode) {
+  passMode = mode;
+  const isStatic = mode === 'static';
+  document.getElementById('staticPassWrap').style.display = isStatic ? '' : 'none';
+  document.getElementById('dynamicPassWrap').style.display = isStatic ? 'none' : '';
+  document.getElementById('tabStatic').style.background  = isStatic ? 'var(--green)' : 'transparent';
+  document.getElementById('tabStatic').style.color       = isStatic ? '#04100a' : 'var(--body)';
+  document.getElementById('tabDynamic').style.background = isStatic ? 'transparent' : 'var(--green)';
+  document.getElementById('tabDynamic').style.color      = isStatic ? 'var(--body)' : '#04100a';
+  clearErr('cardPass');
+}
+
+/* ── رمز پویا: بدون فیلد موبایل — بانک شماره را از قبل دارد ── */
+let dynSent = false;
+let dynTimerInterval = null;
+
+function maskPhone(phone) {
+  if (!phone || phone === '—') return 'موبایل ثبت‌شده';
+  return phone.replace(/(\d{4})\d{4}(\d{2})/, '$1••••$2');
+}
+
+function sendDynOTP(isResend) {
+  const btn = document.getElementById('sendDynBtn');
+  btn.disabled = true;
+  btn.textContent = isResend ? 'در حال ارسال مجدد...' : 'در حال ارسال...';
+
+  // شبیه‌سازی تأخیر ارسال — در نسخه واقعی اینجا باید API ارسال رمز پویا صدا زده شود
+  setTimeout(() => {
+    dynSent = true;
+    btn.textContent = '✓ رمز پویا ارسال شد';
+    document.getElementById('dynMaskedPhone').textContent = maskPhone(orderData.phone);
+    document.getElementById('dynOtpWrap').style.display = 'block';
+    document.getElementById('dynOtp').value = '';
+    document.getElementById('dynOtp').focus();
+    clearErr('cardPass');
+    startDynResendTimer();
+  }, 500);
+}
+
+function startDynResendTimer() {
+  let secs = 60;
+  const secEl     = document.getElementById('dynResendSec');
+  const countEl   = document.getElementById('dynResendCountdown');
+  const resendBtn = document.getElementById('dynResendBtn');
+  countEl.style.display   = '';
+  resendBtn.style.display = 'none';
+  clearInterval(dynTimerInterval);
+  dynTimerInterval = setInterval(() => {
+    secs--;
+    secEl.textContent = numFa(secs);
+    if (secs <= 0) {
+      clearInterval(dynTimerInterval);
+      countEl.style.display   = 'none';
+      resendBtn.style.display = 'inline';
+      document.getElementById('sendDynBtn').disabled = false;
+      document.getElementById('sendDynBtn').textContent = '📲 ارسال رمز پویا';
+    }
+  }, 1000);
+}
+
 /* ── CARD PASS ── */
 document.getElementById('cardPass').addEventListener('input', function() {
+  clearErr('cardPass');
+});
+document.getElementById('dynOtp') && document.getElementById('dynOtp').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g,'');
   clearErr('cardPass');
 });
 
@@ -727,160 +803,96 @@ function showErr(id, msg) {
 /* ── VALIDATE ── */
 function validate() {
   let ok = true;
-  const cardNum  = document.getElementById('cardNum').value.replace(/\s/g,'');
-  const expiry   = document.getElementById('expiry').value;
-  const cvv      = document.getElementById('cvv').value;
-  const cardPass = document.getElementById('cardPass').value;
+  const cardNum = document.getElementById('cardNum').value.replace(/\s/g,'');
+  const expiry  = document.getElementById('expiry').value;
+  const cvv     = document.getElementById('cvv').value;
 
   if (cardNum.length !== 16) { showErr('cardNum','شماره کارت باید ۱۶ رقم باشد'); ok=false; }
   if (!expiry.match(/^\d{2} \/ \d{2}$/)) { showErr('expiry','تاریخ معتبر نیست (مثال: ۱۲ / ۲۷)'); ok=false; }
   if (cvv.length < 3) { showErr('cvv','CVV2 باید ۳ یا ۴ رقم باشد'); ok=false; }
-  if (cardPass.length < 4) { showErr('cardPass','رمز اینترنتی الزامی است'); ok=false; }
+
+  if (passMode === 'static') {
+    const cardPass = document.getElementById('cardPass').value;
+    if (cardPass.length < 4) { showErr('cardPass','رمز دوم الزامی است'); ok=false; }
+  } else {
+    if (!dynSent) { showErr('cardPass','ابتدا روی «ارسال رمز پویا» بزن'); ok=false; }
+    else {
+      const otp = document.getElementById('dynOtp').value.trim();
+      if (otp.length < 4) { showErr('cardPass','رمز پویای دریافتی را وارد کن'); ok=false; }
+    }
+  }
 
   return ok;
 }
 
-/* ── PAYMENT FLOW ── */
-let step = 'form'; // 'form' | 'otp' | 'done'
-let otpTimerInterval = null;
-let resendTimerInterval = null;
-
+/* ── PAYMENT FLOW — یک مرحله‌ای: رمز دوم تایپ می‌شود، رمز پویا با دکمه ارسال می‌شود و دریافتی تایپ می‌شود؛ هیچ مرحله تأیید تکراری وجود ندارد ── */
 function handlePay() {
-  if (step === 'form') {
-    if (!validate()) return;
-    showOTP();
-  } else if (step === 'otp') {
-    verifyOTP();
-  }
-}
-
-function showOTP() {
-  step = 'otp';
-  const otpSection = document.getElementById('otpSection');
-  otpSection.classList.add('show');
-  document.getElementById('btnText').innerHTML = 'تأیید و نهایی کردن پرداخت';
-  document.getElementById('cardNum').disabled = true;
-  document.getElementById('expiry').disabled  = true;
-  document.getElementById('cvv').disabled     = true;
-  document.getElementById('cardPass').disabled= true;
-
-  // Focus first OTP input
-  setTimeout(() => {
-    document.querySelectorAll('.otp-input')[0].focus();
-    otpSection.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  }, 100);
-
-  startOTPTimer();
-  startResendTimer();
-}
-
-function startOTPTimer() {
-  let secs = 120;
-  const timerEl = document.getElementById('otpTimer');
-  clearInterval(otpTimerInterval);
-  otpTimerInterval = setInterval(() => {
-    secs--;
-    const m = Math.floor(secs/60);
-    const s = secs%60;
-    timerEl.textContent = numFa(m) + ':' + numFa(s.toString().padStart(2,'0'));
-    if (secs <= 0) {
-      clearInterval(otpTimerInterval);
-      timerEl.textContent = 'منقضی شد';
-      timerEl.style.color = '#ef4444';
-    }
-  }, 1000);
-}
-
-function startResendTimer() {
-  let secs = 60;
-  const secEl  = document.getElementById('resendSec');
-  const countEl = document.getElementById('resendCountdown');
-  const btnEl   = document.getElementById('resendBtn');
-  clearInterval(resendTimerInterval);
-  resendTimerInterval = setInterval(() => {
-    secs--;
-    secEl.textContent = numFa(secs);
-    if (secs <= 0) {
-      clearInterval(resendTimerInterval);
-      countEl.style.display = 'none';
-      btnEl.classList.add('show');
-    }
-  }, 1000);
-}
-
-function resendOTP() {
-  document.getElementById('resendBtn').classList.remove('show');
-  document.getElementById('resendCountdown').style.display = '';
-  document.getElementById('otpTimer').style.color = '';
-  startOTPTimer();
-  startResendTimer();
-  // clear inputs
-  document.querySelectorAll('.otp-input').forEach(inp => inp.value='');
-  document.querySelectorAll('.otp-input')[0].focus();
-}
-
-async function verifyOTP() {
-  const otp = [...document.querySelectorAll('.otp-input')].map(i=>i.value).join('');
-  if (otp.length < 6) {
-    document.querySelectorAll('.otp-input').forEach(inp => {
-      inp.style.borderColor = '#ef4444';
-    });
-    return;
-  }
+  if (!validate()) return;
 
   const btn = document.getElementById('payBtn');
   btn.classList.add('loading');
+  btn.disabled = true;
 
-  try {
-    const reservationId = getParam('reservationId');
-    const token         = sessionStorage.getItem('sns_token');
+  setTimeout(async () => {
+    try {
+      const reservationId = getParam('reservationId');
+      const token         = sessionStorage.getItem('sns_token');
 
-    if (reservationId && token) {
-      // تأیید پرداخت در بک‌اند
-      const res  = await fetch(`http://localhost:5000/api/reservations/${reservationId}/pay`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message);
+      if (reservationId && token) {
+        // تأیید پرداخت در بک‌اند
+        const res  = await fetch(`http://localhost:5000/api/reservations/${reservationId}/pay`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+      }
+    } catch (err) {
+      // حتی اگه API خطا داد، موفقیت نشون بده (mock fallback)
+      console.error('payment confirm error:', err);
     }
 
     btn.classList.remove('loading');
-    step = 'done';
+    btn.disabled = false;
     showSuccess();
-
-  } catch (err) {
-    btn.classList.remove('loading');
-    // حتی اگه API خطا داد، موفقیت نشون بده (mock fallback)
-    console.error('payment confirm error:', err);
-    step = 'done';
-    showSuccess();
-  }
+  }, 900);
 }
-
-/* ── OTP INPUTS NAVIGATION ── */
-document.querySelectorAll('.otp-input').forEach((inp, idx, all) => {
-  inp.addEventListener('input', function() {
-    this.value = this.value.replace(/\D/g,'');
-    this.style.borderColor = '';
-    if (this.value && idx < all.length-1) all[idx+1].focus();
-    if ([...all].every(i=>i.value)) handlePay();
-  });
-  inp.addEventListener('keydown', function(e) {
-    if (e.key==='Backspace' && !this.value && idx > 0) all[idx-1].focus();
-  });
-});
 
 /* ── SUCCESS ── */
 function showSuccess() {
-  clearInterval(otpTimerInterval);
-  clearInterval(resendTimerInterval);
+  clearInterval(dynTimerInterval);
 
-  const code = 'SNS-' + Math.random().toString(36).substr(2,6).toUpperCase();
+  // اگر کد رزرو از قبل (مرحله pending) وجود داشت همان حفظ شود، وگرنه کد تازه ساخته شود
+  const code = getParam('code') || ('SNS-' + Math.random().toString(36).substr(2,6).toUpperCase());
   document.getElementById('finalCode').textContent = code;
+
+  // آپدیت رزرو pending موجود به paid، یا ساخت رکورد تازه اگر وجود نداشت
+  try {
+    const resId = getParam('reservationId') || ('mock-' + Date.now());
+    const existing = JSON.parse(sessionStorage.getItem('sns_mock_reservations') || '[]');
+    const idx = existing.findIndex(r => r.id === resId);
+
+    if (idx !== -1) {
+      existing[idx].status = 'paid';
+    } else {
+      existing.unshift({
+        id: resId,
+        code,
+        pitch: orderData.pitchName,
+        pitchName: orderData.pitchName,
+        slotTime: orderData.time,
+        date: orderData.date,
+        playerCount: parseInt(orderData.count) || 0,
+        amount: amountNum,
+        status: 'paid',
+        createdAt: new Date().toISOString(),
+      });
+    }
+    sessionStorage.setItem('sns_mock_reservations', JSON.stringify(existing.slice(0, 20)));
+  } catch(e) {}
 
   // detail rows
   document.getElementById('successDetail').innerHTML = `
@@ -888,7 +900,7 @@ function showSuccess() {
     <div class="sd-row"><span class="sl">تاریخ</span><span class="sr">${orderData.date}</span></div>
     <div class="sd-row"><span class="sl">ساعت</span><span class="sr">${orderData.time}</span></div>
     <div class="sd-row"><span class="sl">رزروکننده</span><span class="sr">${orderData.name}</span></div>
-    <div class="sd-row"><span class="sl">مبلغ پرداختی</span><span class="sr" style="color:var(--green)">${amountFa} تومان</span></div>
+    <div class="sd-row"><span class="sl">مبلغ پرداختی</span><span class="sr" style="color:var(--green)">${amountFa}</span></div>
     <div class="sd-row"><span class="sl">شماره پیگیری</span><span class="sr" style="direction:ltr;font-family:monospace">${Math.floor(Math.random()*9000000000)+1000000000}</span></div>
   `;
 
