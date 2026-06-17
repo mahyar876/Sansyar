@@ -714,7 +714,7 @@
     });
   });
 
-  const API = 'http://localhost:5000';
+  const API = 'http://localhost:5000/api';
 
   /* ── نمایش خطا ── */
   function showErr(inputId, errId, msg) {
@@ -862,7 +862,9 @@
 
     // redirect
     const redirect = new URLSearchParams(window.location.search).get('redirect');
-    const dest = redirect === 'reserve' ? './reserve.html' : './index.html';
+    let dest = './index.html';
+    if (redirect === 'reserve') dest = './reserve.html';
+    else if (redirect === 'profile') dest = './profile.html';
     setTimeout(() => { window.location.href = dest; }, 1500);
   }
 
