@@ -179,7 +179,7 @@
       border:1.5px solid rgba(0,0,0,.3);
       box-shadow:0 3px 10px rgba(0,0,0,.7);
       left:50%;bottom:24%;
-      transform:translateX(-50%);
+      transform:scale(1);
       pointer-events:none;z-index:15
     }
     .ball.shoot{
@@ -609,12 +609,12 @@ const DIFF_CFG = {
   مختصات توپ در دروازه (% از عرض و ارتفاع goalEl):
   x: از چپ, y: از بالا
 */
-/* در RTL صفحه، چپ/راست از دید بازیکن برعکس CSS میشه
-   zone 0 = بالا-چپ (از دید بازیکن) = x:87 در CSS (چون RTL)
-   zone 2 = بالا-راست (از دید بازیکن) = x:13 در CSS */
+/* x = درصد از چپ دروازه (CSS، نه دید بازیکن)
+   zone 0 = بالا-راست CSS = بالا-چپ از دید بازیکن (RTL)
+   zone 2 = بالا-چپ CSS = بالا-راست از دید بازیکن */
 const ZONE_POS = {
-  0:{x:87,y:18}, 1:{x:50,y:18}, 2:{x:13,y:18},
-  3:{x:87,y:74}, 4:{x:50,y:74}, 5:{x:13,y:74},
+  0:{x:82,y:18}, 1:{x:50,y:18}, 2:{x:18,y:18},
+  3:{x:82,y:74}, 4:{x:50,y:74}, 5:{x:18,y:74},
 };
 
 /*
@@ -817,11 +817,12 @@ function animBall(z){
   const startX = fr.width/2;
   const startY = fr.height*0.74;
 
-  /* left همیشه نسبت به سمت چپ کانتینر حساب میشه (حتی در RTL) */
-  const dx = (destX - startX);
   /* bottom-based: */
   const startBot = fr.height - startY;
   const destBot  = fr.height - destY;
+
+  /* محاسبه left واقعی توپ در field */
+  const destLeft = (gr.left - fr.left) + gr.width * t.x / 100 - 11; // 11 = نصف عرض توپ
 
   /* مدت پرواز بر اساس قدرت (ثابت برای حالا) */
   const dur = 0.50;
@@ -832,7 +833,8 @@ function animBall(z){
   const spin = (Math.random()<0.5?1:-1) * (Math.floor(rand(300,720)));
 
   ballEl.classList.add('shoot');
-  ballEl.style.left      = 'calc(50% + '+ dx +'px)';
+  ballEl.style.left      = destLeft + 'px';
+  ballEl.style.transform = `scale(0.55) rotate(${spin}deg)`;
   ballEl.style.bottom    = destBot + 'px';
   ballEl.style.transform = `translateX(-50%) scale(0.55) rotate(${spin}deg)`;
   ballEl.style.width     = '22px';
@@ -953,9 +955,10 @@ function showMsg(type,emoji,title,sub){
 
 function resetBall(){
   ballEl.classList.remove('shoot');
-  ballEl.style.left='50%';
+  const fr = fieldEl.getBoundingClientRect();
+  ballEl.style.left = (fr.width/2 - 14) + 'px';
   ballEl.style.bottom='24%';
-  ballEl.style.transform='translateX(-50%)';
+  ballEl.style.transform='scale(1) rotate(0deg)';
   ballEl.style.width='28px';
   ballEl.style.height='28px';
   shadowEl.classList.remove('moving');
