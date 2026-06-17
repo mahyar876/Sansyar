@@ -715,6 +715,20 @@
   }, { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
+  // ── Show "حساب من" if logged in ──
+  (function() {
+    const user = sessionStorage.getItem('sns_user');
+    const loginBtn = document.querySelector('.header .btn');
+    if (user && loginBtn) {
+      loginBtn.textContent = 'حساب من';
+      loginBtn.href = './profile.html';
+      loginBtn.style.background = 'transparent';
+      loginBtn.style.color = 'var(--green)';
+      loginBtn.style.border = '1.5px solid var(--green)';
+      loginBtn.style.boxShadow = 'none';
+    }
+  })();
+
   // ── Send contact form via EmailJS ──
   async function sendContact() {
     const name    = document.getElementById('cName').value.trim();
