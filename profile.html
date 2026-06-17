@@ -612,26 +612,78 @@ async function saveProfile() {
   }
 }
 
+/* ── MOCK RESERVATIONS (sessionStorage) ── */
+function getMockReservations() {
+  try {
+    const raw = JSON.parse(sessionStorage.getItem('sns_mock_reservations') || '[]');
+    // نگاشت ساختار mock به همون شکلی که renderReservations انتظار دارد
+    return raw.map(r => ({
+      _id: r.id,
+      isMock: true,
+      pitch: { name: r.pitchName || r.pitch || 'زمین نامشخص' },
+      date: r.date || '',
+      slotTime: r.slotTime || '',
+      code: r.code || '',
+      amount: r.amount || 0,
+      playerCount: r.playerCount || 0,
+      status: r.status || 'pending',
+      createdAt: r.createdAt || new Date().toISOString(),
+    }));
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveMockReservations(list) {
+  try {
+    sessionStorage.setItem('sns_mock_reservations', JSON.stringify(list.map(r => ({
+      id: r._id, code: r.code, pitchName: r.pitch && r.pitch.name,
+      slotTime: r.slotTime, date: r.date, playerCount: r.playerCount,
+      amount: r.amount, status: r.status, createdAt: r.createdAt,
+    }))));
+  } catch (e) {}
+}
+
 /* ── LOAD RESERVATIONS ── */
 async function loadReservations() {
   const list = document.getElementById('resList');
+  let apiReservations = [];
+  let apiFailed = false;
+
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
     const res  = await fetch(`${API}/reservations/my`, {
+      signal: controller.signal,
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    clearTimeout(timeout);
     const data = await res.json();
     if (!data.success) throw new Error(data.message || 'خطا در دریافت رزروها');
-
-    renderStats(data.reservations);
-    renderReservations(data.reservations);
-
+    apiReservations = data.reservations || [];
   } catch (err) {
+    apiFailed = true;
+  }
+
+  const mockReservations = getMockReservations();
+  const all = [...apiReservations, ...mockReservations]
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+  if (apiFailed && !mockReservations.length) {
     list.innerHTML = `
       <div class="res-empty">
         <h4>مشکلی در دریافت رزروها پیش اومد</h4>
-        <p>${err.message || 'لطفاً دوباره تلاش کن'}</p>
+        <p>لطفاً دوباره تلاش کن</p>
       </div>`;
+    document.getElementById('statTotal').textContent = numFa(0);
+    document.getElementById('statPaid').textContent = numFa(0);
+    document.getElementById('statPending').textContent = numFa(0);
+    document.getElementById('statCancelled').textContent = numFa(0);
+    return;
   }
+
+  renderStats(all);
+  renderReservations(all);
 }
 
 function renderStats(reservations) {
@@ -659,16 +711,18 @@ function renderReservations(reservations) {
     return;
   }
 
-  // newest first (backend already sorts by createdAt desc)
+  // newest first (already sorted in loadReservations)
   list.innerHTML = reservations.map(r => {
     const pitch    = r.pitch || {};
     const status   = statusMap[r.status] || statusMap.pending;
     const typeText = pitch.type ? `${typeLabel[pitch.type] || pitch.type}${pitch.size ? ' · ' + numFa(pitch.size) + ' نفره' : ''}` : '';
+    const cancelHandler = r.isMock ? `cancelMockReservation('${r._id}')` : `cancelReservation('${r._id}')`;
 
     let actionBtn = '';
     if (r.status === 'pending') {
       const params = new URLSearchParams({
         reservationId: r._id,
+        code: r.code || '',
         pitchName: pitch.name || '',
         pitchType: typeText,
         date: r.date || '',
@@ -680,12 +734,12 @@ function renderReservations(reservations) {
       });
       actionBtn = `<a class="res-pay-btn" href="./payment.html?${params.toString()}">تکمیل پرداخت</a>`;
     } else if (r.status === 'paid') {
-      actionBtn = `<button class="res-cancel-btn" onclick="cancelReservation('${r._id}')" disabled style="opacity:.4;cursor:not-allowed" title="رزرو پرداخت‌شده قابل لغو نیست">لغو رزرو</button>`;
+      actionBtn = `<button class="res-cancel-btn" disabled style="opacity:.4;cursor:not-allowed" title="رزرو پرداخت‌شده قابل لغو نیست">لغو رزرو</button>`;
     }
 
     let cancelBtn = '';
     if (r.status === 'pending') {
-      cancelBtn = `<button class="res-cancel-btn" onclick="cancelReservation('${r._id}')">لغو رزرو</button>`;
+      cancelBtn = `<button class="res-cancel-btn" onclick="${cancelHandler}">لغو رزرو</button>`;
     }
 
     return `
@@ -728,6 +782,18 @@ async function cancelReservation(id) {
   } catch (err) {
     alert(err.message || 'خطا در لغو رزرو');
   }
+}
+
+/* ── CANCEL MOCK RESERVATION ── */
+async function cancelMockReservation(id) {
+  if (!confirm('آیا از لغو این رزرو مطمئنی؟')) return;
+
+  const list = getMockReservations().map(r => {
+    if (r._id === id) r.status = 'cancelled';
+    return r;
+  });
+  saveMockReservations(list);
+  await loadReservations();
 }
 
 /* ── LOGOUT ── */
