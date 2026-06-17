@@ -10,7 +10,7 @@ const app = express();
 
 // ── MIDDLEWARE ──
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: '*',
   credentials: true,
 }));
 
@@ -27,11 +27,11 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
 });
-app.use('/api/auth/', authLimiter);
+// app.use('/api/auth/', authLimiter);  
 
 const path = require('path');
 
-app.use(express.static(path.join(__dirname, 'front')));
+app.use(express.static(path.join(__dirname)));
 
 // ── ROUTES ──
 app.use('/api/auth', require('./auth'));
