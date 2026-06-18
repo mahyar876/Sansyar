@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سانس‌یار | پنل مدیریت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg:#07100d; --card:#0d1f17; --section:#0b1a13;
+      --green:#22c55e; --green-dim:#16a34a;
+      --green-glow:rgba(34,197,94,0.13); --green-border:rgba(34,197,94,0.18);
+      --text:#f0faf4; --body:#7fa98c; --muted:#3d6650;
+      --red:#ef4444; --amber:#f59e0b; --radius:12px;
+    }
+    body {
+      direction:rtl; background:var(--bg); color:var(--text);
+      font-family:'Vazirmatn',sans-serif; line-height:1.7;
+      -webkit-font-smoothing:antialiased; min-height:100vh;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position:sticky; top:0; z-index:200;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 32px; height:60px;
+      background:rgba(7,16,13,.97); border-bottom:1px solid var(--green-border);
+      backdrop-filter:blur(14px); gap:16px;
+    }
+    .topbar-logo { font-size:17px; font-weight:900; display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    .logo-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); }
+    .topbar-badge {
+      font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px;
+      background:var(--green-glow); border:1px solid var(--green-border); color:var(--green);
+    }
+    .topbar-actions { display:flex; gap:10px; align-items:center; }
+    .save-status {
+      font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px;
+      transition:color .3s;
+    }
+    .save-status.saved { color:var(--green); }
+    .save-status.saving { color:var(--amber); }
+    .status-dot {
+      width:7px; height:7px; border-radius:50%;
+      background:var(--muted); transition:background .3s;
+    }
+    .save-status.saved .status-dot { background:var(--green); box-shadow:0 0 6px var(--green); }
+    .save-status.saving .status-dot { background:var(--amber); animation:blink .7s infinite; }
+    @keyframes blink { 50% { opacity:.3; } }
+    .export-btn {
+      padding:8px 18px; background:var(--green-glow); color:var(--green);
+      border:1px solid var(--green-border); border-radius:8px;
+      font-family:'Vazirmatn',sans-serif; font-size:13px; font-weight:700;
+      cursor:pointer; transition:all .2s;
+    }
+    .export-btn:hover { background:var(--green); color:#04100a; }
+
+    /* ── SIDEBAR + MAIN ── */
+    .layout { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 60px); }
+
+    .sidebar {
+      background:var(--section); border-left:1px solid var(--green-border);
+      padding:20px 0; position:sticky; top:60px; height:calc(100vh - 60px);
+      overflow-y:auto;
+    }
+    .sidebar-label {
+      font-size:10px; font-weight:700; color:var(--muted); letter-spacing:2px;
+      text-transform:uppercase; padding:0 16px; margin-bottom:8px; margin-top:20px;
+      display:block;
+    }
+    .sidebar-label:first-child { margin-top:0; }
+    .nav-item {
+      display:flex; align-items:center; gap:10px;
+      padding:10px 16px; cursor:pointer;
+      font-size:13px; font-weight:600; color:var(--body);
+      transition:all .2s; border-right:3px solid transparent;
+    }
+    .nav-item:hover { background:var(--green-glow); color:var(--text); }
+    .nav-item.active { color:var(--green); border-right-color:var(--green); background:var(--green-glow); }
+    .nav-item .ni-icon { font-size:16px; flex-shrink:0; }
+    .nav-divider { height:1px; background:var(--green-border); margin:12px 0; }
+
+    /* ── CONTENT ── */
+    .content { padding:28px 32px 60px; }
+
+    /* ── SECTION PANELS ── */
+    .panel { display:none; }
+    .panel.active { display:block; }
+
+    .panel-title { font-size:22px; font-weight:900; margin-bottom:4px; }
+    .panel-title em { font-style:normal; color:var(--green); }
+    .panel-sub { font-size:13px; color:var(--body); margin-bottom:28px; }
+
+    /* ── SLOTS PANEL ── */
+    .slots-table-wrap {
+      background:var(--card); border:1px solid var(--green-border);
+      border-radius:14px; overflow:hidden;
+    }
+    .slots-table { width:100%; border-collapse:collapse; }
+    .slots-table th {
+      padding:11px 16px; font-size:10px; font-weight:700; color:var(--muted);
+      letter-spacing:1px; text-align:right; border-bottom:1px solid var(--green-border);
+      background:rgba(34,197,94,.03); text-transform:uppercase;
+    }
+    .slots-table td { padding:7px 12px; border-bottom:1px solid rgba(34,197,94,.05); vertical-align:middle; }
+    .slots-table tr:last-child td { border-bottom:none; }
+    .slots-table tr:hover td { background:rgba(34,197,94,.025); }
+
+    .slot-num-badge {
+      width:24px; height:24px; border-radius:6px;
+      background:var(--green-glow); border:1px solid var(--green-border);
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:700; color:var(--green);
+    }
+    .tbl-input {
+      background:#0a1a10; border:1.5px solid var(--green-border);
+      border-radius:8px; color:var(--text); font-family:'Vazirmatn',sans-serif;
+      font-size:13px; padding:7px 10px; outline:none; transition:border-color .2s;
+    }
+    .tbl-input:focus { border-color:var(--green); }
+    .tbl-input.time { width:140px; }
+    .tbl-input.price { width:150px; color:var(--green); font-weight:700; direction:ltr; text-align:right; }
+    .peak-tag {
+      display:inline-block; padding:3px 9px; border-radius:20px; font-size:10px; font-weight:700;
+    }
+    .peak-tag.peak { background:rgba(245,158,11,.12); color:var(--amber); border:1px solid rgba(245,158,11,.25); }
+    .peak-tag.normal { background:var(--green-glow); color:var(--green); border:1px solid var(--green-border); }
+
+    /* ── BULK TOOL ── */
+    .bulk-bar {
+      background:var(--card); border:1px solid var(--green-border);
+      border-radius:12px; padding:18px 20px; margin-bottom:20px;
+      display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;
+    }
+    .bulk-bar h4 { font-size:14px; font-weight:700; margin-bottom:2px; }
+    .bulk-bar p { font-size:12px; color:var(--body); }
+    .bulk-grp { display:flex; flex-direction:column; gap:5px; }
+    .bulk-grp label { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.5px; }
+    .bulk-sel, .bulk-inp {
+      background:#0a1a10; border:1px solid var(--green-border);
+      border-radius:8px; color:var(--text); font-family:'Vazirmatn',sans-serif;
+      font-size:13px; padding:8px 11px; outline:none; transition:border-color .2s;
+    }
+    .bulk-sel:focus, .bulk-inp:focus { border-color:var(--green); }
+    .bulk-inp { color:var(--green); font-weight:700; width:160px; direction:ltr; text-align:right; }
+    .bulk-apply {
+      padding:8px 20px; background:var(--green-glow); color:var(--green);
+      border:1px solid var(--green-border); border-radius:8px;
+      font-family:'Vazirmatn',sans-serif; font-size:13px; font-weight:700;
+      cursor:pointer; transition:all .2s; align-self:flex-end;
+    }
+    .bulk-apply:hover { background:var(--green); color:#04100a; }
+
+    /* ── PITCHES PANEL ── */
+    .pitches-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:18px;
+    }
+    .pitch-cfg {
+      background:var(--card); border:1.5px solid var(--green-border);
+      border-radius:14px; overflow:hidden; transition:border-color .25s;
+    }
+    .pitch-cfg:hover { border-color:rgba(34,197,94,.4); }
+    .pitch-cfg.dirty { border-color:var(--amber); }
+    .pcfg-head {
+      padding:14px 18px; border-bottom:1px solid var(--green-border);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .pcfg-left { display:flex; align-items:center; gap:10px; }
+    .pcfg-num {
+      width:28px; height:28px; border-radius:8px;
+      background:var(--green-glow); border:1px solid var(--green-border);
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:700; color:var(--green); flex-shrink:0;
+    }
+    .pcfg-name { font-size:14px; font-weight:700; }
+    .pcfg-type { font-size:11px; color:var(--body); }
+    .pcfg-active-toggle {
+      width:36px; height:20px; border-radius:20px; background:var(--green-border);
+      border:none; cursor:pointer; position:relative; transition:background .2s; flex-shrink:0;
+    }
+    .pcfg-active-toggle::after {
+      content:''; position:absolute; top:3px; right:3px;
+      width:14px; height:14px; border-radius:50%; background:#666; transition:all .2s;
+    }
+    .pcfg-active-toggle.on { background:var(--green); }
+    .pcfg-active-toggle.on::after { background:#04100a; right:auto; left:3px; }
+
+    .pcfg-body { padding:14px 18px; display:flex; flex-direction:column; gap:11px; }
+    .cfg-row { display:flex; flex-direction:column; gap:4px; }
+    .cfg-label { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; }
+    .cfg-input {
+      width:100%; background:#0a1a10; border:1.5px solid var(--green-border);
+      border-radius:8px; color:var(--text); font-family:'Vazirmatn',sans-serif;
+      font-size:13px; padding:8px 11px; outline:none; transition:border-color .2s;
+    }
+    .cfg-input:focus { border-color:var(--green); }
+    .cfg-input.price-inp { color:var(--green); font-weight:700; direction:ltr; text-align:right; }
+    .cfg-row-inline { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+    .pcfg-slots { padding:0 18px 16px; }
+    .pcfg-slots-title {
+      font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.5px;
+      text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;
+    }
+    .slots-mini { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+    .slot-mini {
+      padding:5px 6px; border-radius:6px; text-align:center;
+      border:1px solid var(--green-border); background:#0a1a10;
+      cursor:pointer; transition:all .15s; font-size:10px; font-weight:600; color:var(--body);
+      user-select:none;
+    }
+    .slot-mini:hover { border-color:var(--green); color:var(--text); }
+    .slot-mini.taken { background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.3); color:var(--red); }
+    .slot-mini.peak { border-color:rgba(245,158,11,.3); color:var(--amber); }
+
+    .pcfg-footer {
+      padding:10px 18px 14px; display:flex; gap:8px; border-top:1px solid var(--green-border);
+    }
+    .pcfg-save-btn {
+      flex:1; padding:9px; background:var(--green); color:#04100a;
+      border:none; border-radius:8px; font-family:'Vazirmatn',sans-serif;
+      font-size:13px; font-weight:700; cursor:pointer; transition:all .2s;
+    }
+    .pcfg-save-btn:hover { background:var(--green-dim); }
+    .pcfg-save-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .pcfg-reset-btn {
+      padding:9px 14px; background:transparent; color:var(--body);
+      border:1px solid var(--green-border); border-radius:8px;
+      font-family:'Vazirmatn',sans-serif; font-size:12px; font-weight:700;
+      cursor:pointer; transition:all .2s;
+    }
+    .pcfg-reset-btn:hover { border-color:var(--red); color:var(--red); }
+    .saved-badge {
+      font-size:11px; color:var(--green); display:none; align-items:center; gap:4px; padding:4px 0;
+    }
+    .saved-badge.show { display:flex; }
+
+    /* ── EXPORT PANEL ── */
+    .export-wrap {
+      background:var(--card); border:1px solid var(--green-border);
+      border-radius:14px; overflow:hidden;
+    }
+    .export-head {
+      padding:18px 22px; border-bottom:1px solid var(--green-border);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .export-head h3 { font-size:15px; font-weight:700; }
+    .copy-btn {
+      padding:7px 16px; background:var(--green-glow); color:var(--green);
+      border:1px solid var(--green-border); border-radius:8px;
+      font-family:'Vazirmatn',sans-serif; font-size:12px; font-weight:700;
+      cursor:pointer; transition:all .2s;
+    }
+    .copy-btn:hover { background:var(--green); color:#04100a; }
+    .code-pre {
+      padding:20px 22px; font-family:monospace; font-size:12px; color:var(--body);
+      white-space:pre-wrap; word-break:break-all; line-height:1.8;
+      max-height:500px; overflow-y:auto; background:#080f0b;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:var(--card); border:1px solid var(--green-border);
+      border-radius:30px; padding:11px 22px;
+      font-size:13px; font-weight:700; color:var(--green);
+      box-shadow:0 8px 32px rgba(0,0,0,.5);
+      opacity:0; pointer-events:none;
+      transition:opacity .25s, transform .25s; z-index:999;
+    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(-4px); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:900px) {
+      .layout { grid-template-columns:1fr; }
+      .sidebar { position:static; height:auto; display:flex; flex-wrap:wrap; padding:10px; gap:4px; border-left:none; border-bottom:1px solid var(--green-border); }
+      .sidebar-label { display:none; }
+      .nav-item { border-radius:8px; border-right:none; border-bottom:2px solid transparent; padding:8px 12px; }
+      .nav-item.active { border-bottom-color:var(--green); border-right:none; }
+      .nav-divider { display:none; }
+      .pitches-grid { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:600px) {
+      .pitches-grid { grid-template-columns:1fr; }
+      .topbar { padding:0 16px; }
+      .content { padding:20px 16px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-dot"></div>
+    سانس‌یار
+    <span class="topbar-badge">پنل مدیریت</span>
+  </div>
+  <div class="topbar-actions">
+    <div class="save-status" id="saveStatus">
+      <div class="status-dot"></div>
+      <span id="saveStatusText">همه تغییرات اعمال شده</span>
+    </div>
+    <button class="export-btn" onclick="showPanel('export'); buildExport()">📋 خروجی کد</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <span class="sidebar-label">تنظیمات</span>
+    <div class="nav-item active" onclick="showPanel('pitches')" id="nav-pitches">
+      <span class="ni-icon">🏟️</span> زمین‌ها
+    </div>
+    <div class="nav-item" onclick="showPanel('slots')" id="nav-slots">
+      <span class="ni-icon">⏰</span> سانس‌ها و قیمت‌ها
+    </div>
+    <div class="nav-divider"></div>
+    <span class="sidebar-label">خروجی</span>
+    <div class="nav-item" onclick="showPanel('export'); buildExport()" id="nav-export">
+      <span class="ni-icon">📋</span> خروجی کد
+    </div>
+    <div class="nav-item" onclick="window.open('./index.html','_blank')" id="nav-preview">
+      <span class="ni-icon">👁️</span> پیش‌نمایش سایت
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ═══ PITCHES PANEL ═══ -->
+    <div class="panel active" id="panel-pitches">
+      <div class="panel-title">مدیریت <em>زمین‌ها</em></div>
+      <div class="panel-sub">تغییرات هر زمین مستقیماً روی داده‌ها اعمال می‌شن — نیازی به ذخیره کلی نیست</div>
+      <div class="pitches-grid" id="pitchesGrid"></div>
+    </div>
+
+    <!-- ═══ SLOTS PANEL ═══ -->
+    <div class="panel" id="panel-slots">
+      <div class="panel-title">سانس‌ها و <em>قیمت‌ها</em></div>
+      <div class="panel-sub">یه زمین رو انتخاب کن و قیمت هر سانس رو مخصوص همون زمین تنظیم کن — هر زمین کاملاً مستقل از بقیه است</div>
+
+      <div class="bulk-bar">
+        <div class="bulk-grp" style="flex:1;min-width:240px">
+          <label>زمین</label>
+          <select class="bulk-sel" id="slotsPitchSelect" onchange="onSlotsPitchChange(this.value)" style="width:100%"></select>
+        </div>
+      </div>
+
+      <div class="bulk-bar">
+        <div>
+          <h4>تغییر دسته‌جمعی</h4>
+          <p>قیمت یه بازه رو فقط برای همین زمین یکجا عوض کن</p>
+        </div>
+        <div class="bulk-grp">
+          <label>بازه زمانی</label>
+          <select class="bulk-sel" id="bulkPeriod">
+            <option value="morning">صبح و ظهر (سانس ۱–۷)</option>
+            <option value="evening">عصر و شب (سانس ۸–۱۱)</option>
+            <option value="all">همه سانس‌ها</option>
+          </select>
+        </div>
+        <div class="bulk-grp">
+          <label>قیمت جدید (تومان)</label>
+          <input type="number" class="bulk-inp" id="bulkPrice" value="550000" step="10000">
+        </div>
+        <button class="bulk-apply" onclick="applyBulkPrice()">اعمال روی این زمین</button>
+      </div>
+
+      <div class="slots-table-wrap">
+        <table class="slots-table">
+          <thead>
+            <tr>
+              <th style="width:40px">#</th>
+              <th>بازه زمانی</th>
+              <th>قیمت (تومان)</th>
+              <th>دسته</th>
+            </tr>
+          </thead>
+          <tbody id="slotsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ EXPORT PANEL ═══ -->
+    <div class="panel" id="panel-export">
+      <div class="panel-title">خروجی <em>کد</em></div>
+      <div class="panel-sub">این بخش اختیاریه — تغییرات همین الان از طریق مرورگر (localStorage) روی سایت اعمال میشن. این کد فقط برای کسایی هست که می‌خوان داده‌ها رو مستقیم توی فایل script.js هم ثابت کنن.</div>
+      <div class="export-wrap">
+        <div class="export-head">
+          <h3>کد آماده برای script.js</h3>
+          <button class="copy-btn" onclick="copyExport()">📋 کپی همه</button>
+        </div>
+        <pre class="code-pre" id="exportCode">در حال تولید کد...</pre>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// STATE — داده‌های اصلی که همه چیز از اینجا می‌خونه
+// ═══════════════════════════════════════════
+
+// این آرایه فقط زمان‌بندی پایه‌ست (الگوی سانس‌ها) — قیمت واقعی هر سانس
+// مال خودِ هر زمینه (pitch.slotPrices) و اینجا فقط برای ساخت زمین جدید استفاده میشه
+const BASE_SLOT_TIMES = [
+  '۰۶:۰۰–۰۷:۳۰','۰۷:۳۰–۰۹:۰۰','۰۹:۰۰–۱۰:۳۰','۱۰:۳۰–۱۲:۰۰',
+  '۱۲:۰۰–۱۳:۳۰','۱۳:۳۰–۱۵:۰۰','۱۵:۰۰–۱۶:۳۰','۱۶:۳۰–۱۸:۰۰',
+  '۱۸:۰۰–۱۹:۳۰','۱۹:۳۰–۲۱:۰۰','۲۱:۰۰–۲۲:۳۰',
+];
+
+const STATE = {
+  dirty: false,
+  selectedPitchIdx: 0, // کدوم زمین الان توی پنل سانس‌ها/قیمت‌ها انتخاب شده
+
+  // فقط برای زمین‌های جدید / fallback پیش‌فرض
+  slots: BASE_SLOT_TIMES.map(t => ({ time: t, price: 550000 })),
+
+  pitches: [
+    {
+      id:'1', name:'سالن فوتسال آریا', type:'futsal', size:5, isActive:true,
+      price:550000, color1:'#0d3320', color2:'#051a0e',
+      tags:['سرپوشیده','رختکن','کفپوش PVC','نور مصنوعی'],
+      address:'خیابان ولیعصر، نرسیده به میدان ونک',
+      takenSlots:[false,false,false,false,false,false,false,false,true,false,true],
+      slotPrices:[550000,550000,550000,550000,550000,550000,550000,700000,700000,700000,700000]
+    },
+    {
+      id:'2', name:'چمن فوتبال پارک ملت', type:'grass', size:11, isActive:true,
+      price:550000, color1:'#0a2e10', color2:'#040f06',
+      tags:['چمن مصنوعی','روشنایی شبانه','پارکینگ','تریبون'],
+      address:'پارک ملت، بلوار کشاورز',
+      takenSlots:[true,true,false,false,false,false,false,true,false,false,true],
+      slotPrices:[550000,550000,550000,550000,550000,550000,550000,700000,700000,700000,700000]
+    },
+    {
+      id:'3', name:'فوتسال ستاره شرق', type:'futsal', size:7, isActive:true,
+      price:550000, color1:'#0d2e1a', color2:'#060f08',
+      tags:['سرپوشیده','دوش','نوشیدنی','وای‌فای'],
+      address:'نارمک، خیابان دماوند',
+      takenSlots:[false,false,false,false,false,false,false,false,false,false,false],
+      slotPrices:[550000,550000,550000,550000,550000,550000,550000,700000,700000,700000,700000]
+    },
+    {
+      id:'4', name:'زمین چمن رضایی', type:'grass', size:7, isActive:true,
+      price:550000, color1:'#082510', color2:'#030c05',
+      tags:['چمن طبیعی','تریبون','بوفه','رختکن'],
+      address:'تهران پارس، خیابان شکوفه',
+      takenSlots:[true,false,false,true,false,false,false,true,false,false,false],
+      slotPrices:[550000,550000,550000,550000,550000,550000,550000,700000,700000,700000,700000]
+    },
+    {
+      id:'5', name:'سالن ورزشی امید', type:'futsal', size:5, isActive:true,
+      price:550000, color1:'#0d3320', color2:'#051a0e',
+      tags:['سرپوشیده','رختکن','مربی آزاد'],
+      address:'صادقیه، خیابان آیت‌الله کاشانی',
+      takenSlots:[false,false,true,false,false,false,false,true,false,false,false],
+      slotPrices:[550000,550000,550000,550000,550000,550000,550000,700000,700000,700000,700000]
+    },
+    {
+      id:'6', name:'چمن فوتبال دانشگاه', type:'grass', size:11, isActive:true,
+      price:550000, color1:'#0a2e10', color2:'#040f06',
+      tags:['چمن مصنوعی','روشنایی شبانه','دوربین'],
+      address:'انقلاب، محوطه دانشگاه تهران',
+      takenSlots:[true,true,true,true,false,true,true,true,false,false,false],
+      slotPrices:[550000,550000,550000,550000,550000,550000,550000,700000,700000,700000,700000]
+    },
+  ]
+};
+
+// اطمینان از وجود slotPrices روی هر زمین (برای داده‌های قدیمی توی localStorage)
+function ensureSlotPrices() {
+  STATE.pitches.forEach(p => {
+    if (!p.slotPrices || p.slotPrices.length !== STATE.slots.length) {
+      p.slotPrices = STATE.slots.map(s => s.price);
+    }
+  });
+}
+
+// ── PERSIST TO LOCALSTORAGE ──
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem('sansyar_admin_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.slots) STATE.slots = parsed.slots;
+      if (parsed.pitches) STATE.pitches = parsed.pitches;
+    }
+  } catch(e) {}
+  ensureSlotPrices();
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem('sansyar_admin_state', JSON.stringify({ slots: STATE.slots, pitches: STATE.pitches }));
+    // broadcast به تب‌های دیگه
+    localStorage.setItem('sansyar_admin_updated', Date.now().toString());
+  } catch(e) {}
+  setSaveStatus('saved');
+}
+
+// ── SAVE STATUS ──
+let saveTimer;
+function markDirty() {
+  setSaveStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToStorage, 800);
+}
+
+function setSaveStatus(s) {
+  const el = document.getElementById('saveStatus');
+  const tx = document.getElementById('saveStatusText');
+  el.className = 'save-status ' + s;
+  if (s === 'saved') tx.textContent = 'همه تغییرات ذخیره شده';
+  else if (s === 'saving') tx.textContent = 'در حال ذخیره...';
+  else tx.textContent = 'همه تغییرات اعمال شده';
+}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+const numFa = n => n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const priceFa = n => numFa((parseInt(n)||0).toLocaleString('en'));
+const typeLabel = {futsal:'فوتسال سرپوشیده', grass:'چمن فوتبال'};
+const typeShort = {futsal:'فوتسال', grass:'چمن'};
+
+let toastTimer;
+function toast(msg, dur=2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+}
+window.showPanel = showPanel;
+
+// ═══════════════════════════════════════════
+// SLOTS PANEL — انتخاب زمین + جدول قیمت اختصاصی همون زمین
+// ═══════════════════════════════════════════
+function renderPitchSelector() {
+  const sel = document.getElementById('slotsPitchSelect');
+  if (!sel) return;
+  sel.innerHTML = STATE.pitches.map((p, i) =>
+    `<option value="${i}" ${i === STATE.selectedPitchIdx ? 'selected' : ''}>${p.name} — ${typeShort[p.type]} · ${numFa(p.size)} نفره</option>`
+  ).join('');
+}
+
+function onSlotsPitchChange(idx) {
+  STATE.selectedPitchIdx = parseInt(idx);
+  renderSlotsTable();
+}
+window.onSlotsPitchChange = onSlotsPitchChange;
+
+function renderSlotsTable() {
+  const tbody = document.getElementById('slotsTableBody');
+  const pitch = STATE.pitches[STATE.selectedPitchIdx];
+  if (!pitch) return;
+
+  tbody.innerHTML = STATE.slots.map((s, i) => {
+    const price  = pitch.slotPrices[i];
+    const isPeak = price >= 700000;
+    return `<tr>
+      <td><span class="slot-num-badge">${numFa(i+1)}</span></td>
+      <td>
+        <input class="tbl-input time" value="${s.time}"
+          oninput="STATE.slots[${i}].time=this.value; markDirty()">
+      </td>
+      <td>
+        <input class="tbl-input price" type="number" value="${price}" step="10000"
+          oninput="STATE.pitches[${STATE.selectedPitchIdx}].slotPrices[${i}]=parseInt(this.value)||0; markDirty(); renderSlotsTable(); updateSlotMinis(${STATE.selectedPitchIdx})">
+      </td>
+      <td>
+        <span class="peak-tag ${isPeak ? 'peak' : 'normal'}">${isPeak ? '🌙 اوج' : '☀️ عادی'}</span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function rerenderSlotMinis() {
+  STATE.pitches.forEach((_, i) => updateSlotMinis(i));
+}
+
+function applyBulkPrice() {
+  const period = document.getElementById('bulkPeriod').value;
+  const price  = parseInt(document.getElementById('bulkPrice').value) || 0;
+  if (!price) { toast('❌ قیمت را وارد کن'); return; }
+  const pitch = STATE.pitches[STATE.selectedPitchIdx];
+  STATE.slots.forEach((s, i) => {
+    if (period === 'all') pitch.slotPrices[i] = price;
+    else if (period === 'morning' && i <= 6) pitch.slotPrices[i] = price;
+    else if (period === 'evening' && i >= 7) pitch.slotPrices[i] = price;
+  });
+  renderSlotsTable();
+  updateSlotMinis(STATE.selectedPitchIdx);
+  markDirty();
+  toast('✓ قیمت‌های «' + pitch.name + '» به‌روز شدن');
+}
+window.applyBulkPrice = applyBulkPrice;
+
+// ═══════════════════════════════════════════
+// PITCHES GRID
+// ═══════════════════════════════════════════
+function renderPitchesGrid() {
+  const grid = document.getElementById('pitchesGrid');
+  grid.innerHTML = STATE.pitches.map((p, i) => `
+    <div class="pitch-cfg" id="pitch-card-${i}">
+      <div class="pcfg-head">
+        <div class="pcfg-left">
+          <div class="pcfg-num">${numFa(i+1)}</div>
+          <div>
+            <div class="pcfg-name" id="pcfg-name-${i}">${p.name}</div>
+            <div class="pcfg-type">${typeShort[p.type]} · ${numFa(p.size)} نفره</div>
+          </div>
+        </div>
+        <button class="pcfg-active-toggle ${p.isActive?'on':''}" id="toggle-${i}"
+          onclick="toggleActive(${i})" title="${p.isActive?'فعال (کلیک برای غیرفعال)':'غیرفعال (کلیک برای فعال)'}">
+        </button>
+      </div>
+
+      <div class="pcfg-body">
+        <div class="cfg-row">
+          <span class="cfg-label">نام زمین</span>
+          <input class="cfg-input" value="${p.name}" id="inp-name-${i}"
+            oninput="updatePitch(${i},'name',this.value)">
+        </div>
+        <div class="cfg-row-inline">
+          <div class="cfg-row">
+            <span class="cfg-label">نوع</span>
+            <select class="cfg-input" onchange="updatePitch(${i},'type',this.value)">
+              <option value="futsal" ${p.type==='futsal'?'selected':''}>فوتسال</option>
+              <option value="grass" ${p.type==='grass'?'selected':''}>چمن</option>
+            </select>
+          </div>
+          <div class="cfg-row">
+            <span class="cfg-label">ظرفیت</span>
+            <select class="cfg-input" onchange="updatePitch(${i},'size',parseInt(this.value))">
+              <option value="5" ${p.size===5?'selected':''}>۵ نفره</option>
+              <option value="7" ${p.size===7?'selected':''}>۷ نفره</option>
+              <option value="11" ${p.size===11?'selected':''}>۱۱ نفره</option>
+            </select>
+          </div>
+        </div>
+        <div class="cfg-row">
+          <span class="cfg-label">آدرس</span>
+          <input class="cfg-input" style="font-size:12px" value="${p.address}"
+            oninput="updatePitch(${i},'address',this.value)">
+        </div>
+        <div class="cfg-row">
+          <span class="cfg-label">تگ‌ها (با کاما جدا کن)</span>
+          <input class="cfg-input" style="font-size:12px" value="${p.tags.join('، ')}"
+            oninput="updatePitch(${i},'tags',this.value.split(/[،,]/).map(t=>t.trim()).filter(Boolean))">
+        </div>
+        <div class="cfg-row">
+          <button class="cfg-input" style="cursor:pointer;text-align:center;background:var(--green-glow);color:var(--green);border-color:var(--green-border)"
+            onclick="goEditPrices(${i})">⏰ ویرایش قیمت سانس‌های این زمین</button>
+        </div>
+      </div>
+
+      <div class="pcfg-slots">
+        <div class="pcfg-slots-title">
+          <span>وضعیت سانس‌ها — کلیک برای رزرو/آزاد کردن</span>
+          <span id="avail-count-${i}" style="color:var(--green);font-size:11px">
+            ${numFa(p.takenSlots.filter(t=>!t).length)} خالی
+          </span>
+        </div>
+        <div class="slots-mini" id="slots-mini-${i}"></div>
+      </div>
+
+      <div class="pcfg-footer">
+        <button class="pcfg-save-btn" onclick="savePitch(${i})">✓ اعمال تغییرات این زمین</button>
+        <button class="pcfg-reset-btn" onclick="resetPitch(${i})" title="برگشت به آخرین ذخیره">↺</button>
+        <span class="saved-badge" id="saved-badge-${i}">✓ ذخیره شد</span>
+      </div>
+    </div>
+  `).join('');
+
+  STATE.pitches.forEach((_, i) => updateSlotMinis(i));
+}
+
+// میره به پنل سانس‌ها/قیمت‌ها و همون زمین رو انتخاب می‌کنه
+function goEditPrices(i) {
+  STATE.selectedPitchIdx = i;
+  showPanel('slots');
+  renderPitchSelector();
+  renderSlotsTable();
+}
+window.goEditPrices = goEditPrices;
+
+function updateSlotMinis(i) {
+  const p = STATE.pitches[i];
+  const container = document.getElementById('slots-mini-' + i);
+  const countEl   = document.getElementById('avail-count-' + i);
+  if (!container) return;
+
+  container.innerHTML = STATE.slots.map((s, si) => {
+    const taken = p.takenSlots[si] || false;
+    const peak  = (p.slotPrices[si] || 0) >= 700000;
+    const cls   = taken ? 'slot-mini taken' : (peak ? 'slot-mini peak' : 'slot-mini');
+    const label = taken ? '🔴' : (peak ? '🟡' : '🟢');
+    return `<div class="${cls}" onclick="toggleSlot(${i},${si})" title="${s.time}">
+      ${label} ${numFa(si+1)}
+    </div>`;
+  }).join('');
+
+  if (countEl) countEl.textContent = numFa(p.takenSlots.filter(t=>!t).length) + ' خالی';
+}
+
+function toggleSlot(pitchIdx, slotIdx) {
+  STATE.pitches[pitchIdx].takenSlots[slotIdx] = !STATE.pitches[pitchIdx].takenSlots[slotIdx];
+  updateSlotMinis(pitchIdx);
+  markDirty();
+}
+window.toggleSlot = toggleSlot;
+
+function updatePitch(i, key, val) {
+  STATE.pitches[i][key] = val;
+  // اگه نام عوض شد، هدر کارت رو هم آپدیت کن
+  if (key === 'name') {
+    const nameEl = document.getElementById('pcfg-name-' + i);
+    if (nameEl) nameEl.textContent = val;
+    renderPitchSelector();
+  }
+  document.getElementById('pitch-card-' + i).classList.add('dirty');
+  markDirty();
+}
+window.updatePitch = updatePitch;
+
+function toggleActive(i) {
+  STATE.pitches[i].isActive = !STATE.pitches[i].isActive;
+  const btn = document.getElementById('toggle-' + i);
+  btn.classList.toggle('on', STATE.pitches[i].isActive);
+  btn.title = STATE.pitches[i].isActive ? 'فعال (کلیک برای غیرفعال)' : 'غیرفعال (کلیک برای فعال)';
+  markDirty();
+  toast(STATE.pitches[i].isActive ? '✓ زمین فعال شد' : '⚠️ زمین غیرفعال شد');
+}
+window.toggleActive = toggleActive;
+
+function savePitch(i) {
+  // تغییرات از قبل روی STATE اعمال شده — فقط ذخیره و نشان‌دهی
+  document.getElementById('pitch-card-' + i).classList.remove('dirty');
+  saveToStorage();
+  const badge = document.getElementById('saved-badge-' + i);
+  badge.classList.add('show');
+  setTimeout(() => badge.classList.remove('show'), 2000);
+  toast('✓ زمین «' + STATE.pitches[i].name + '» ذخیره شد');
+}
+window.savePitch = savePitch;
+
+// آخرین وضعیت ذخیره‌شده از localStorage
+function resetPitch(i) {
+  if (!confirm('تغییرات این زمین از آخرین ذخیره برگردونده بشه؟')) return;
+  loadFromStorage();
+  renderPitchesGrid();
+  renderPitchSelector();
+  renderSlotsTable();
+  toast('↺ برگشت به آخرین ذخیره');
+}
+window.resetPitch = resetPitch;
+
+// ═══════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════
+function buildExport() {
+  const slotsCode = STATE.slots.map(s =>
+    `    {time:'${s.time}'}`
+  ).join(',\n');
+
+  const pitchesCode = STATE.pitches.map((p, i) => {
+    const takenArr = p.takenSlots.map(t => t ? 'true' : 'false').join(',');
+    const tags = p.tags.map(t => `'${t}'`).join(', ');
+    const avail = p.takenSlots.filter(t=>!t).length;
+    const slotPricesStr = p.slotPrices.join(',');
+    return `    {
+      id:'${p.id}', name:'${p.name}', type:'${p.type}', size:${p.size},
+      avail:${avail}, isActive:${p.isActive},
+      color1:'${p.color1}', color2:'${p.color2}',
+      tags:[${tags}],
+      address:'${p.address}',
+      slotPrices:[${slotPricesStr}],
+      slots:makeSlots([${takenArr}], [${slotPricesStr}])
+    }`;
+  }).join(',\n');
+
+  const code = `// ════════════════════════════════════
+// تنظیم‌شده از پنل مدیریت سانس‌یار
+// آخرین ویرایش: ${new Date().toLocaleDateString('fa-IR')}
+// ════════════════════════════════════
+
+  const SLOT_TIMES = [
+${slotsCode}
+  ];
+
+  function makeSlots(takenArr, priceArr) {
+    return SLOT_TIMES.map((s, i) => ({
+      time: s.time, price: priceArr[i], taken: takenArr[i] || false
+    }));
+  }
+
+  const STATIC_PITCHES = [
+${pitchesCode}
+  ];`;
+
+  document.getElementById('exportCode').textContent = code;
+}
+window.buildExport = buildExport;
+
+function copyExport() {
+  const code = document.getElementById('exportCode').textContent;
+  navigator.clipboard.writeText(code).then(() => toast('✓ کد کپی شد!'));
+}
+window.copyExport = copyExport;
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+loadFromStorage();
+renderPitchSelector();
+renderSlotsTable();
+renderPitchesGrid();
+setSaveStatus('');
+</script>
+</body>
+</html>
