@@ -840,7 +840,7 @@ function handlePay() {
 
       if (reservationId && token) {
         // تأیید پرداخت در بک‌اند
-        const res  = await fetch(`http://localhost:5000/api/reservations/${reservationId}/pay`, {
+        const res  = await fetch(`https://sansyar-1.onrender.com/api/reservations/${reservationId}/pay`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
