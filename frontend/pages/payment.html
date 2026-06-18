@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>درگاه پرداخت امن | سانس‌یار</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --bg:        #07100d;
+      --card:      #0d1f17;
+      --green:     #22c55e;
+      --green-dim: #16a34a;
+      --green-glow:rgba(34,197,94,0.13);
+      --border:    rgba(34,197,94,0.18);
+      --text:      #f0faf4;
+      --body:      #7fa98c;
+      --muted:     #3d6650;
+      --red:       #ef4444;
+      --radius:    12px;
+    }
+
+    html { scroll-behavior:smooth; }
+
+    body {
+      direction:rtl;
+      background:var(--bg);
+      color:var(--text);
+      font-family:'Vazirmatn',sans-serif;
+      line-height:1.7;
+      -webkit-font-smoothing:antialiased;
+      min-height:100vh;
+      display:flex; flex-direction:column;
+    }
+
+    /* ── BANK TOPBAR ── */
+    .bank-bar {
+      height:52px;
+      background:#050f0a;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 40px;
+    }
+    .bank-logo {
+      display:flex; align-items:center; gap:10px;
+      font-size:15px; font-weight:800; color:var(--text);
+    }
+    .bank-logo-icon {
+      width:32px; height:32px; border-radius:8px;
+      background:linear-gradient(135deg,#0d6633,#22c55e);
+      display:flex; align-items:center; justify-content:center;
+      font-size:16px; font-weight:900; color:#04100a;
+    }
+    .bank-secure { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--body); }
+    .ssl-badge {
+      display:flex; align-items:center; gap:5px;
+      padding:3px 10px; border-radius:20px;
+      background:var(--green-glow); border:1px solid var(--border);
+      font-size:11px; font-weight:700; color:var(--green);
+    }
+
+    /* ── MAIN ── */
+    .pay-main { flex:1; display:flex; align-items:center; justify-content:center; padding:30px 20px; }
+    .pay-wrap {
+      width:100%; max-width:920px;
+      display:grid; grid-template-columns:1fr 380px;
+      gap:24px; align-items:start;
+    }
+
+    /* ── CARD FORM ── */
+    .card-form-box { background:var(--card); border:1px solid var(--border); border-radius:18px; overflow:hidden; }
+    .form-header { padding:22px 28px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+    .form-header-icon {
+      width:40px; height:40px; border-radius:10px;
+      background:var(--green-glow); border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center; font-size:18px;
+    }
+    .form-header-title { font-size:17px; font-weight:800; }
+    .form-header-sub   { font-size:12px; color:var(--body); }
+    .form-body { padding:28px; }
+
+    /* credit card preview */
+    .credit-card-preview {
+      width:100%; aspect-ratio:1.586/1; max-width:320px;
+      margin:0 auto 28px; border-radius:16px; padding:22px 24px;
+      background:linear-gradient(135deg,#0a3d1e 0%,#0d2e1a 50%,#061408 100%);
+      border:1px solid rgba(34,197,94,.2);
+      box-shadow:0 16px 48px rgba(0,0,0,.5), 0 0 0 1px rgba(34,197,94,.1);
+      position:relative; overflow:hidden;
+      display:flex; flex-direction:column; justify-content:space-between;
+    }
+    .credit-card-preview::before {
+      content:''; position:absolute; top:-60px; right:-60px;
+      width:200px; height:200px; border-radius:50%;
+      background:radial-gradient(circle,rgba(34,197,94,.08),transparent 70%);
+    }
+    .cc-chip { width:40px; height:30px; border-radius:5px; background:linear-gradient(135deg,#c8a800,#ffe066,#c8a800); position:relative; }
+    .cc-chip::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:70%; height:60%; border:1px solid rgba(0,0,0,.2); border-radius:2px; }
+    .cc-number { font-size:18px; font-weight:700; letter-spacing:4px; color:rgba(255,255,255,.9); direction:ltr; text-align:center; font-family:monospace; }
+    .cc-bottom { display:flex; justify-content:space-between; align-items:flex-end; }
+    .cc-label { font-size:9px; color:rgba(255,255,255,.45); margin-bottom:2px; }
+    .cc-value { font-size:13px; font-weight:600; color:rgba(255,255,255,.85); font-family:monospace; }
+    .cc-brand { width:44px; height:28px; background:linear-gradient(135deg,#e31837,#f07b00); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; color:white; letter-spacing:.5px; }
+
+    /* form groups */
+    .fg { margin-bottom:18px; }
+    .fg label { display:block; font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.5px; margin-bottom:7px; }
+    .fg input {
+      width:100%; padding:13px 16px;
+      background:#0a1a10; border:1.5px solid var(--border);
+      border-radius:10px; color:var(--text);
+      font-family:'Vazirmatn',sans-serif; font-size:15px;
+      outline:none; transition:border-color .2s, box-shadow .2s;
+      direction:ltr; text-align:center; letter-spacing:2px;
+    }
+    .fg input::placeholder { color:var(--muted); letter-spacing:0; }
+    .fg input:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.08); }
+    .fg input.error { border-color:var(--red); }
+    .fg input.valid { border-color:var(--green); }
+    .err-msg { font-size:11px; color:var(--red); margin-top:5px; display:none; }
+    .err-msg.show { display:block; }
+    .fg-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+    /* ── PASS MODE TABS ── */
+    .pass-tabs { display:flex; gap:8px; margin-bottom:16px; }
+    .pass-tab {
+      flex:1; padding:10px 14px;
+      background:var(--card); border:1.5px solid var(--border);
+      border-radius:10px; color:var(--body);
+      font-family:'Vazirmatn',sans-serif; font-size:13px;
+      font-weight:600; cursor:pointer; transition:all .2s;
+    }
+    .pass-tab.active { background:var(--green-glow); border-color:var(--green); color:var(--text); }
+
+    /* send otp btn */
+    .send-otp-pay-btn {
+      width:100%; padding:12px;
+      background:var(--green-glow); color:var(--green);
+      border:1px solid var(--border); border-radius:10px;
+      font-family:'Vazirmatn',sans-serif; font-size:14px;
+      font-weight:700; cursor:pointer; transition:all .2s; margin-bottom:4px;
+    }
+    .send-otp-pay-btn:hover { background:var(--green); color:#04100a; }
+    .send-otp-pay-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* OTP section (بانکی — بعد از کلیک پرداخت) */
+    .otp-section { background:#0a1a10; border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:18px; display:none; }
+    .otp-section.show { display:block; }
+    .otp-header { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; margin-bottom:14px; color:var(--text); }
+    .otp-timer { font-size:13px; font-weight:700; color:var(--green); margin-right:auto; font-family:monospace; }
+
+    .otp-inputs { display:flex; gap:8px; justify-content:center; direction:ltr; }
+    .otp-input {
+      width:48px; height:52px; border-radius:10px;
+      background:#07100d; border:1.5px solid var(--border);
+      color:var(--text); font-size:22px; font-weight:700;
+      text-align:center; outline:none; font-family:monospace;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    .otp-input:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.1); }
+    .otp-resend { text-align:center; margin-top:12px; font-size:12px; color:var(--muted); }
+    .otp-resend button { background:none; border:none; color:var(--green); font-family:'Vazirmatn',sans-serif; font-size:12px; cursor:pointer; text-decoration:underline; display:none; }
+    .otp-resend button.show { display:inline; }
+
+    /* discount */
+    .discount-wrap { background:#0a1a10; border:1.5px dashed var(--border); border-radius:10px; padding:14px 16px; margin-bottom:18px; }
+    .discount-toggle { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--body); font-weight:600; transition:color .2s; background:none; border:none; font-family:'Vazirmatn',sans-serif; padding:0; width:100%; text-align:right; }
+    .discount-toggle:hover { color:var(--green); }
+    .discount-toggle .dt-icon { font-size:16px; }
+    .discount-inner { display:none; margin-top:12px; }
+    .discount-inner.show { display:block; }
+    .discount-row { display:flex; gap:8px; }
+    .discount-row input { flex:1; padding:11px 14px; background:#07100d; border:1.5px solid var(--border); border-radius:8px; color:var(--text); font-family:'Vazirmatn',sans-serif; font-size:14px; outline:none; transition:border-color .2s; direction:ltr; text-align:center; letter-spacing:2px; text-transform:uppercase; }
+    .discount-row input:focus { border-color:var(--green); }
+    .discount-row input.valid { border-color:var(--green); background:rgba(34,197,94,.05); }
+    .discount-row input.error { border-color:var(--red); }
+    .discount-apply-btn { padding:11px 16px; border-radius:8px; white-space:nowrap; background:var(--green-glow); color:var(--green); border:1px solid var(--border); font-family:'Vazirmatn',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all .2s; }
+    .discount-apply-btn:hover { background:var(--green); color:#04100a; }
+    .discount-apply-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .discount-msg { font-size:12px; margin-top:8px; padding:7px 12px; border-radius:8px; display:none; }
+    .discount-msg.ok { display:block; background:rgba(34,197,94,.1); color:var(--green); border:1px solid rgba(34,197,94,.2); }
+    .discount-msg.err { display:block; background:rgba(239,68,68,.08); color:var(--red); border:1px solid rgba(239,68,68,.2); }
+
+    /* pay button */
+    .pay-btn { width:100%; padding:16px; background:var(--green); color:#04100a; border:none; border-radius:12px; font-family:'Vazirmatn',sans-serif; font-size:17px; font-weight:800; cursor:pointer; transition:background .2s, box-shadow .2s, transform .15s; box-shadow:0 0 24px rgba(34,197,94,.3); display:flex; align-items:center; justify-content:center; gap:8px; }
+    .pay-btn:hover:not(:disabled) { background:var(--green-dim); box-shadow:0 0 40px rgba(34,197,94,.45); transform:translateY(-1px); }
+    .pay-btn:disabled { opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
+    .pay-btn.loading { pointer-events:none; }
+    .spinner { width:18px; height:18px; border-radius:50%; border:2.5px solid rgba(4,16,10,.3); border-top-color:#04100a; animation:spin .7s linear infinite; display:none; }
+    .pay-btn.loading .spinner { display:block; }
+    .pay-btn.loading .btn-text { display:none; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .cancel-link { display:block; text-align:center; margin-top:14px; font-size:13px; color:var(--muted); cursor:pointer; text-decoration:underline; transition:color .2s; }
+    .cancel-link:hover { color:var(--body); }
+
+    /* ORDER SUMMARY */
+    .order-box { background:var(--card); border:1px solid var(--border); border-radius:18px; overflow:hidden; position:sticky; top:20px; }
+    .order-header { padding:18px 22px 16px; border-bottom:1px solid var(--border); font-size:13px; font-weight:700; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; }
+    .order-pitch { padding:18px 22px; display:flex; gap:14px; align-items:center; border-bottom:1px solid var(--border); }
+    .order-pitch-thumb { width:60px; height:60px; border-radius:10px; flex-shrink:0; overflow:hidden; border:1px solid var(--border); }
+    .order-pitch-thumb svg { width:100%; height:100%; }
+    .order-pitch-name { font-size:14px; font-weight:800; margin-bottom:3px; }
+    .order-pitch-type { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--green-glow); color:var(--green); border:1px solid var(--border); }
+    .order-rows { padding:16px 22px; }
+    .order-row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; font-size:13px; border-bottom:1px solid rgba(34,197,94,.05); }
+    .order-row:last-child { border-bottom:none; }
+    .order-row .ol { color:var(--body); }
+    .order-row .or { font-weight:600; }
+    .order-total { margin:0 22px 18px; padding:14px 16px; background:#0a1a10; border:1px solid var(--border); border-radius:10px; display:flex; justify-content:space-between; align-items:center; }
+    .order-total .tl { font-size:13px; color:var(--body); font-weight:600; }
+    .order-total .tr { font-size:20px; font-weight:900; color:var(--green); direction:rtl; }
+    .security-badges { padding:14px 22px; display:flex; gap:10px; border-top:1px solid var(--border); flex-wrap:wrap; }
+    .sec-badge { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
+    .sec-badge span { font-size:14px; }
+
+    /* SUCCESS SCREEN */
+    .success-screen { display:none; position:fixed; inset:0; z-index:999; background:var(--bg); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; }
+    .success-screen.show { display:flex; }
+    .success-ring { width:90px; height:90px; border-radius:50%; background:var(--green-glow); border:3px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:40px; margin-bottom:22px; box-shadow:0 0 40px rgba(34,197,94,.35); animation:ringPop .5s ease; }
+    @keyframes ringPop { from{transform:scale(.4);opacity:0} to{transform:scale(1);opacity:1} }
+    .success-screen h2 { font-size:30px; font-weight:900; margin-bottom:10px; }
+    .success-screen p { color:var(--body); font-size:15px; line-height:1.8; margin-bottom:26px; max-width:400px; }
+    .reserve-code-box { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 32px; font-size:24px; font-weight:900; color:var(--green); letter-spacing:5px; margin-bottom:28px; direction:ltr; }
+    .success-detail { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 24px; width:100%; max-width:420px; margin-bottom:28px; text-align:right; }
+    .sd-row { display:flex; justify-content:space-between; font-size:13px; padding:7px 0; border-bottom:1px solid rgba(34,197,94,.06); }
+    .sd-row:last-child { border-bottom:none; }
+    .sd-row .sl { color:var(--body); }
+    .sd-row .sr { font-weight:600; }
+    .success-actions { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+    .btn-green { padding:13px 28px; background:var(--green); color:#04100a; border-radius:10px; font-family:'Vazirmatn',sans-serif; font-size:15px; font-weight:700; border:none; cursor:pointer; box-shadow:0 0 20px rgba(34,197,94,.3); transition:background .2s; text-decoration:none; display:inline-block; }
+    .btn-green:hover { background:var(--green-dim); }
+    .btn-ghost { padding:13px 28px; background:transparent; color:var(--green); border-radius:10px; font-family:'Vazirmatn',sans-serif; font-size:15px; font-weight:700; border:1.5px solid var(--border); cursor:pointer; transition:border-color .2s, background .2s; text-decoration:none; display:inline-block; }
+    .btn-ghost:hover { border-color:var(--green); background:var(--green-glow); }
+
+    @media (max-width:820px) { .pay-wrap { grid-template-columns:1fr; max-width:480px; } .order-box { position:static; } }
+    @media (max-width:480px) { .bank-bar { padding:0 16px; } .form-body { padding:20px; } .otp-input { width:40px; height:46px; font-size:18px; } }
+  </style>
+</head>
+<body>
+
+  <!-- BANK TOP BAR -->
+  <div class="bank-bar">
+    <div class="bank-logo">
+      <div class="bank-logo-icon">S</div>
+      <span>درگاه پرداخت سانس‌یار</span>
+    </div>
+    <div class="bank-secure">
+      <div class="ssl-badge">🔒 SSL</div>
+      <span>اتصال امن</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="pay-main">
+    <div class="pay-wrap">
+
+      <!-- LEFT: CARD FORM -->
+      <div class="card-form-box">
+        <div class="form-header">
+          <div class="form-header-icon">💳</div>
+          <div>
+            <div class="form-header-title">پرداخت اینترنتی</div>
+            <div class="form-header-sub">اطلاعات کارت بانکی خود را وارد کنید</div>
+          </div>
+        </div>
+
+        <div class="form-body">
+
+          <!-- Card Visual -->
+          <div class="credit-card-preview" id="cardPreview">
+            <div class="cc-chip"></div>
+            <div class="cc-number" id="ccDisplay">•••• &nbsp;•••• &nbsp;•••• &nbsp;••••</div>
+            <div class="cc-bottom">
+              <div>
+                <div class="cc-label">نام صاحب کارت</div>
+                <div class="cc-value" id="ccName">— — — —</div>
+              </div>
+              <div>
+                <div class="cc-label">تاریخ انقضا</div>
+                <div class="cc-value" id="ccExpiry">MM/YY</div>
+              </div>
+              <div class="cc-brand">BANK</div>
+            </div>
+          </div>
+
+          <!-- Card Number -->
+          <div class="fg">
+            <label>شماره کارت</label>
+            <input type="text" id="cardNum" placeholder="•••• •••• •••• ••••"
+                   maxlength="19" autocomplete="cc-number" inputmode="numeric">
+            <div class="err-msg" id="cardNumErr">شماره کارت ۱۶ رقم باید باشد</div>
+          </div>
+
+          <!-- Expiry + CVV2 -->
+          <div class="fg-row">
+            <div class="fg">
+              <label>تاریخ انقضا</label>
+              <input type="text" id="expiry" placeholder="MM / YY"
+                     maxlength="7" autocomplete="cc-exp" inputmode="numeric">
+              <div class="err-msg" id="expiryErr">تاریخ معتبر نیست</div>
+            </div>
+            <div class="fg">
+              <label>CVV2</label>
+              <input type="text" id="cvv" placeholder="•••"
+                     maxlength="4" autocomplete="cc-csc" inputmode="numeric">
+              <div class="err-msg" id="cvvErr">CVV2 صحیح نیست</div>
+            </div>
+          </div>
+
+          <!-- PASSWORD MODE TABS -->
+          <div class="pass-tabs">
+            <button type="button" class="pass-tab active" id="tab-static" onclick="switchPassTab('static')">
+              🔑 رمز دوم کارت
+            </button>
+            <button type="button" class="pass-tab" id="tab-otp" onclick="switchPassTab('otp')">
+              📱 رمز پویا
+            </button>
+          </div>
+
+          <!-- رمز دوم -->
+          <div id="pass-static-section">
+            <div class="fg">
+              <label>رمز دوم کارت (رمز اینترنتی)</label>
+              <input type="password" id="cardPass" placeholder="رمز اینترنتی کارت"
+                     autocomplete="current-password">
+              <div class="err-msg" id="cardPassErr">رمز اینترنتی الزامی است</div>
+            </div>
+          </div>
+
+          <!-- رمز پویا -->
+          <div id="pass-otp-section" style="display:none">
+            <div class="fg">
+              <label>شماره موبایل صاحب کارت</label>
+              <input type="tel" id="otpPhone" placeholder="09123456789"
+                     style="direction:ltr;text-align:right" inputmode="numeric">
+              <div class="err-msg" id="otpPhoneErr">شماره موبایل معتبر نیست</div>
+            </div>
+            <button type="button" class="send-otp-pay-btn" id="sendOtpPayBtn" onclick="sendPayOTP()">
+              📱 ارسال رمز پویا
+            </button>
+            <div id="otp-pay-inputs" style="display:none;margin-top:14px">
+              <div class="fg">
+                <label>رمز پویا دریافت‌شده</label>
+                <div class="otp-inputs" id="otpPayInputs">
+                  <input class="otp-input pay-otp-cell" maxlength="1" inputmode="numeric">
+                  <input class="otp-input pay-otp-cell" maxlength="1" inputmode="numeric">
+                  <input class="otp-input pay-otp-cell" maxlength="1" inputmode="numeric">
+                  <input class="otp-input pay-otp-cell" maxlength="1" inputmode="numeric">
+                  <input class="otp-input pay-otp-cell" maxlength="1" inputmode="numeric">
+                  <input class="otp-input pay-otp-cell" maxlength="1" inputmode="numeric">
+                </div>
+              </div>
+              <div class="otp-resend" id="otpPayResend">
+                <span id="otpPayCountdown">ارسال مجدد پس از <strong id="otpPaySec">۶۰</strong> ثانیه</span>
+                <button id="resendPayBtn" onclick="sendPayOTP()">ارسال مجدد</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- OTP بانکی (بعد از کلیک پرداخت در حالت رمز دوم) -->
+          <div class="otp-section" id="otpSection">
+            <div class="otp-header">
+              🔑 رمز یک‌بار مصرف
+              <span class="otp-timer" id="otpTimer">۲:۰۰</span>
+            </div>
+            <p style="font-size:12px;color:var(--body);margin-bottom:14px">
+              رمز ۶ رقمی به شماره موبایل
+              <strong id="maskedPhone" style="color:var(--text)">09••••••••</strong>
+              ارسال شد
+            </p>
+            <div class="otp-inputs" id="otpInputs">
+              <input class="otp-input bank-otp-cell" maxlength="1" inputmode="numeric">
+              <input class="otp-input bank-otp-cell" maxlength="1" inputmode="numeric">
+              <input class="otp-input bank-otp-cell" maxlength="1" inputmode="numeric">
+              <input class="otp-input bank-otp-cell" maxlength="1" inputmode="numeric">
+              <input class="otp-input bank-otp-cell" maxlength="1" inputmode="numeric">
+              <input class="otp-input bank-otp-cell" maxlength="1" inputmode="numeric">
+            </div>
+            <div class="otp-resend">
+              <span id="resendCountdown">ارسال مجدد پس از <strong id="resendSec">۶۰</strong> ثانیه</span>
+              <button id="resendBtn" onclick="resendOTP()">ارسال مجدد رمز</button>
+            </div>
+          </div>
+
+          <!-- Discount Code -->
+          <div class="discount-wrap">
+            <button type="button" class="discount-toggle" onclick="toggleDiscountField()">
+              <span class="dt-icon">🎟️</span>
+              کد تخفیف دارم
+              <span id="discToggleArrow" style="margin-right:auto;transition:transform .2s">▼</span>
+            </button>
+            <div class="discount-inner" id="discountInner">
+              <div class="discount-row">
+                <input type="text" id="discountInput" placeholder="SNS15-XXXXXX" maxlength="12"
+                  oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9\-]/g,'')">
+                <button type="button" class="discount-apply-btn" id="discApplyBtn" onclick="applyDiscount()">اعمال</button>
+              </div>
+              <div class="discount-msg" id="discountMsg"></div>
+            </div>
+          </div>
+
+          <!-- Pay Button -->
+          <button class="pay-btn" id="payBtn" onclick="handlePay()">
+            <div class="spinner" id="spinner"></div>
+            <span class="btn-text" id="btnText">پرداخت — <span id="btnAmount">۱۸۰ هزار تومان</span></span>
+          </button>
+
+          <a class="cancel-link" href="./reserve.html">انصراف و بازگشت به رزرو</a>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: ORDER SUMMARY -->
+      <div class="order-box">
+        <div class="order-header">خلاصه سفارش</div>
+        <div class="order-pitch">
+          <div class="order-pitch-thumb">
+            <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+              <rect width="60" height="60" fill="#0d3320"/>
+              <rect x="4" y="4" width="52" height="52" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+              <line x1="30" y1="4" x2="30" y2="56" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+              <circle cx="30" cy="30" r="12" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+              <circle cx="30" cy="30" r="2" fill="rgba(255,255,255,0.2)"/>
+            </svg>
+          </div>
+          <div>
+            <div class="order-pitch-name" id="orderPitchName">سالن فوتسال آریا</div>
+            <div class="order-pitch-type" id="orderPitchType">فوتسال · ۵ نفره</div>
+          </div>
+        </div>
+        <div class="order-rows">
+          <div class="order-row"><span class="ol">تاریخ</span><span class="or" id="orderDate">—</span></div>
+          <div class="order-row"><span class="ol">ساعت</span><span class="or" id="orderTime">—</span></div>
+          <div class="order-row"><span class="ol">رزروکننده</span><span class="or" id="orderName">—</span></div>
+          <div class="order-row"><span class="ol">موبایل</span><span class="or" id="orderPhone">—</span></div>
+          <div class="order-row"><span class="ol">نفرات</span><span class="or" id="orderCount">—</span></div>
+        </div>
+        <div class="order-total">
+          <span class="tl">مبلغ قابل پرداخت</span>
+          <span class="tr" id="orderTotal">۱۸۰,۰۰۰ تومان</span>
+        </div>
+        <div class="security-badges">
+          <div class="sec-badge"><span>🔒</span> پرداخت امن</div>
+          <div class="sec-badge"><span>🏦</span> تأیید بانک</div>
+          <div class="sec-badge"><span>🛡️</span> حفاظت خریدار</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-ring">✓</div>
+    <h2>پرداخت موفق! 🎉</h2>
+    <p>تراکنش شما با موفقیت انجام شد.<br>کد رزرو به پیامک ارسال خواهد شد.</p>
+    <div class="reserve-code-box" id="finalCode">SNS-XXXXXX</div>
+    <div class="success-detail" id="successDetail"></div>
+    <div class="success-actions">
+      <button class="btn-green" onclick="location.href='./reserve.html'">رزرو جدید</button>
+      <a class="btn-ghost" href="./index.html">بازگشت به خانه</a>
+    </div>
+  </div>
+
+<script>
+/* ── UTILS ── */
+function getParam(key) { return new URLSearchParams(window.location.search).get(key) || ''; }
+function numFa(n) { return n.toString().replace(/\d/g, d=>'۰۱۲۳۴۵۶۷۸۹'[d]); }
+function priceFaWords(n) {
+  n = parseInt(n) || 0;
+  if (n % 1000 === 0) return numFa((n/1000).toLocaleString('en')) + ' هزار تومان';
+  return numFa(n.toLocaleString('en')) + ' تومان';
+}
+
+/* ── ORDER DATA ── */
+const orderData = {
+  pitchName : getParam('pitchName') || 'سالن فوتسال آریا',
+  pitchType : getParam('pitchType') || 'فوتسال · ۵ نفره',
+  date      : getParam('date')      || '—',
+  time      : getParam('time')      || '—',
+  name      : getParam('name')      || '—',
+  phone     : getParam('phone')     || '—',
+  count     : getParam('count')     || '—',
+  amount    : getParam('amount')    || '180000',
+};
+
+document.getElementById('orderPitchName').textContent = orderData.pitchName;
+document.getElementById('orderPitchType').textContent = orderData.pitchType;
+document.getElementById('orderDate').textContent      = orderData.date;
+document.getElementById('orderTime').textContent      = orderData.time;
+document.getElementById('orderName').textContent      = orderData.name;
+document.getElementById('orderPhone').textContent     = orderData.phone;
+document.getElementById('orderCount').textContent     = orderData.count + ' نفر';
+
+const amountNum = parseInt(orderData.amount) || 180000;
+const amountFa  = priceFaWords(amountNum);
+document.getElementById('orderTotal').textContent = amountFa;
+document.getElementById('btnAmount').textContent  = amountFa;
+
+if (orderData.phone && orderData.phone !== '—') {
+  const masked = orderData.phone.replace(/(\d{4})\d{4}(\d{2})/, '$1••••$2');
+  document.getElementById('maskedPhone').textContent = masked;
+}
+
+/* ── CARD FORMATTING ── */
+document.getElementById('cardNum').addEventListener('input', function() {
+  let v = this.value.replace(/\D/g,'').substr(0,16);
+  this.value = v.replace(/(\d{4})(?=\d)/g,'$1 ');
+  const disp = v.padEnd(16,'•');
+  document.getElementById('ccDisplay').innerHTML =
+    disp.substr(0,4)+' &nbsp;'+disp.substr(4,4)+' &nbsp;'+disp.substr(8,4)+' &nbsp;'+disp.substr(12,4);
+  clearErr('cardNum');
+});
+
+document.getElementById('expiry').addEventListener('input', function() {
+  let v = this.value.replace(/\D/g,'');
+  if (v.length >= 3) v = v.substr(0,2)+' / '+v.substr(2,2);
+  this.value = v;
+  document.getElementById('ccExpiry').textContent = v || 'MM/YY';
+  clearErr('expiry');
+});
+
+document.getElementById('cvv').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g,'');
+  clearErr('cvv');
+});
+
+function clearErr(id) {
+  const el = document.getElementById(id);
+  const em = document.getElementById(id+'Err');
+  if(el) el.classList.remove('error');
+  if(em) em.classList.remove('show');
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  const em = document.getElementById(id+'Err');
+  if(el) el.classList.add('error');
+  if(em) { if(msg) em.textContent=msg; em.classList.add('show'); }
+}
+
+/* ── PASS MODE ── */
+let passMode = 'static';
+
+function switchPassTab(mode) {
+  passMode = mode;
+  document.getElementById('tab-static').classList.toggle('active', mode==='static');
+  document.getElementById('tab-otp').classList.toggle('active', mode==='otp');
+  document.getElementById('pass-static-section').style.display = mode==='static' ? 'block' : 'none';
+  document.getElementById('pass-otp-section').style.display = mode==='otp' ? 'block' : 'none';
+}
+
+/* ── SEND PAY OTP (رمز پویا) ── */
+let payOtpTimer = null;
+let mockPayOtp  = null;
+
+function sendPayOTP() {
+  const phone = document.getElementById('otpPhone').value.trim();
+  if (!/^09[0-9]{9}$/.test(phone)) {
+    document.getElementById('otpPhoneErr').classList.add('show');
+    document.getElementById('otpPhone').classList.add('error');
+    return;
+  }
+  document.getElementById('otpPhoneErr').classList.remove('show');
+  document.getElementById('otpPhone').classList.remove('error');
+
+  mockPayOtp = Math.floor(100000 + Math.random()*900000).toString();
+  console.log('🔑 رمز پویا (mock):', mockPayOtp);
+
+  setTimeout(() => {
+    alert('رمز پویا شما (mock): ' + mockPayOtp + '\n\nدر سیستم واقعی به موبایل ' + phone + ' پیامک می‌شد.');
+  }, 300);
+
+  document.getElementById('otp-pay-inputs').style.display = 'block';
+  document.getElementById('sendOtpPayBtn').disabled = true;
+  document.getElementById('otpPhone').disabled = true;
+
+  let secs = 60;
+  const secEl = document.getElementById('otpPaySec');
+  const resendBtn = document.getElementById('resendPayBtn');
+  const countdown = document.getElementById('otpPayCountdown');
+  clearInterval(payOtpTimer);
+  payOtpTimer = setInterval(() => {
+    secs--;
+    secEl.textContent = numFa(secs);
+    if (secs <= 0) {
+      clearInterval(payOtpTimer);
+      countdown.style.display = 'none';
+      resendBtn.style.display = 'inline';
+      document.getElementById('sendOtpPayBtn').disabled = false;
+      document.getElementById('otpPhone').disabled = false;
+    }
+  }, 1000);
+
+  setTimeout(() => document.querySelectorAll('.pay-otp-cell')[0].focus(), 100);
+}
+
+/* ── OTP CELL NAVIGATION — رمز پویا ── */
+document.querySelectorAll('.pay-otp-cell').forEach((cell, idx, all) => {
+  cell.addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g,'');
+    if (this.value && idx < all.length-1) all[idx+1].focus();
+  });
+  cell.addEventListener('keydown', function(e) {
+    if (e.key==='Backspace' && !this.value && idx>0) all[idx-1].focus();
+  });
+});
+
+/* ── OTP CELL NAVIGATION — رمز بانکی ── */
+document.querySelectorAll('.bank-otp-cell').forEach((cell, idx, all) => {
+  cell.addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g,'');
+    this.style.borderColor = '';
+    if (this.value && idx < all.length-1) all[idx+1].focus();
+    if ([...all].every(i=>i.value)) handlePay();
+  });
+  cell.addEventListener('keydown', function(e) {
+    if (e.key==='Backspace' && !this.value && idx>0) all[idx-1].focus();
+  });
+});
+
+/* ── VALIDATE ── */
+function validate() {
+  let ok = true;
+  const cardNum = document.getElementById('cardNum').value.replace(/\s/g,'');
+  const expiry  = document.getElementById('expiry').value;
+  const cvv     = document.getElementById('cvv').value;
+
+  if (cardNum.length !== 16) { showErr('cardNum','شماره کارت باید ۱۶ رقم باشد'); ok=false; }
+  if (!expiry.match(/^\d{2} \/ \d{2}$/)) { showErr('expiry','تاریخ معتبر نیست'); ok=false; }
+  if (cvv.length < 3) { showErr('cvv','CVV2 باید ۳ یا ۴ رقم باشد'); ok=false; }
+
+  if (passMode === 'static') {
+    const cardPass = document.getElementById('cardPass').value;
+    if (cardPass.length < 4) { showErr('cardPass','رمز اینترنتی الزامی است'); ok=false; }
+  } else {
+    if (!mockPayOtp) { alert('لطفاً ابتدا رمز پویا را دریافت کنید'); ok=false; }
+    else {
+      const entered = [...document.querySelectorAll('.pay-otp-cell')].map(i=>i.value).join('');
+      if (entered.length < 6) { alert('لطفاً رمز پویا را کامل وارد کنید'); ok=false; }
+    }
+  }
+  return ok;
+}
+
+/* ── DISCOUNT ── */
+let appliedDiscount = 0;
+
+function toggleDiscountField() {
+  const inner = document.getElementById('discountInner');
+  const arrow = document.getElementById('discToggleArrow');
+  const isOpen = inner.classList.contains('show');
+  inner.classList.toggle('show', !isOpen);
+  arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+  if (!isOpen) setTimeout(()=>document.getElementById('discountInput').focus(), 150);
+}
+
+function applyDiscount() {
+  const inp  = document.getElementById('discountInput');
+  const btn  = document.getElementById('discApplyBtn');
+  const code = inp.value.trim().toUpperCase();
+  if (!code) { showDiscMsg('err','کد تخفیف را وارد کن'); return; }
+
+  let store = {};
+  try { store = JSON.parse(localStorage.getItem('sansyar_discounts')||'{}'); } catch(e){}
+
+  const entry = store[code];
+  if (!entry) { inp.className='error'; showDiscMsg('err','کد تخفیف معتبر نیست'); return; }
+  if (entry.used) { inp.className='error'; showDiscMsg('err','این کد قبلاً استفاده شده'); return; }
+  if (Date.now() > entry.exp) { inp.className='error'; showDiscMsg('err','مهلت استفاده از این کد گذشته'); return; }
+
+  appliedDiscount = entry.pct;
+  inp.className = 'valid';
+  inp.readOnly  = true;
+  btn.disabled  = true;
+
+  const discAmt  = Math.round(amountNum * entry.pct / 100);
+  const finalAmt = amountNum - discAmt;
+  showDiscMsg('ok', '✓ کد پذیرفته شد — ' + numFa(entry.pct) + '٪ تخفیف (' + priceFaWords(discAmt) + ' کسر شد)');
+  document.getElementById('orderTotal').innerHTML =
+    '<span style="text-decoration:line-through;opacity:.45;font-size:13px">'+amountFa+'</span> <span style="color:var(--green)">'+priceFaWords(finalAmt)+'</span>';
+  document.getElementById('btnAmount').textContent = priceFaWords(finalAmt);
+  window._pendingDiscCode = code;
+}
+
+function showDiscMsg(type, text) {
+  const el = document.getElementById('discountMsg');
+  el.textContent = text;
+  el.className = 'discount-msg ' + type;
+}
+
+function confirmDiscountUsed() {
+  const code = window._pendingDiscCode;
+  if (!code) return;
+  let store = {};
+  try { store = JSON.parse(localStorage.getItem('sansyar_discounts')||'{}'); } catch(e){}
+  if (store[code]) { store[code].used = true; localStorage.setItem('sansyar_discounts', JSON.stringify(store)); }
+}
+
+/* ── PAYMENT FLOW ── */
+let step = 'form';
+let otpTimerInterval   = null;
+let resendTimerInterval = null;
+
+function handlePay() {
+  if (step === 'form') {
+    if (!validate()) return;
+
+    if (passMode === 'otp') {
+      // رمز پویا — مستقیم تأیید
+      const entered = [...document.querySelectorAll('.pay-otp-cell')].map(i=>i.value).join('');
+      if (entered !== mockPayOtp) {
+        document.querySelectorAll('.pay-otp-cell').forEach(i => i.style.borderColor='#ef4444');
+        alert('رمز پویا اشتباه است');
+        return;
+      }
+      step = 'done';
+      confirmDiscountUsed();
+      updateSessionStatus();
+      showSuccess();
+    } else {
+      // رمز دوم — نیاز به OTP بانکی
+      showBankOTP();
+    }
+  } else if (step === 'otp') {
+    verifyBankOTP();
+  }
+}
+
+function showBankOTP() {
+  step = 'otp';
+  document.getElementById('otpSection').classList.add('show');
+  document.getElementById('btnText').innerHTML = 'تأیید و نهایی کردن پرداخت';
+  document.getElementById('cardNum').disabled  = true;
+  document.getElementById('expiry').disabled   = true;
+  document.getElementById('cvv').disabled      = true;
+  document.getElementById('cardPass').disabled = true;
+
+  setTimeout(() => {
+    document.querySelectorAll('.bank-otp-cell')[0].focus();
+    document.getElementById('otpSection').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }, 100);
+
+  startOTPTimer();
+  startResendTimer();
+}
+
+function startOTPTimer() {
+  let secs = 120;
+  const timerEl = document.getElementById('otpTimer');
+  clearInterval(otpTimerInterval);
+  otpTimerInterval = setInterval(() => {
+    secs--;
+    const m = Math.floor(secs/60);
+    const s = secs%60;
+    timerEl.textContent = numFa(m)+':'+numFa(s.toString().padStart(2,'0'));
+    if (secs <= 0) { clearInterval(otpTimerInterval); timerEl.textContent='منقضی شد'; timerEl.style.color='#ef4444'; }
+  }, 1000);
+}
+
+function startResendTimer() {
+  let secs = 60;
+  const secEl    = document.getElementById('resendSec');
+  const countEl  = document.getElementById('resendCountdown');
+  const btnEl    = document.getElementById('resendBtn');
+  clearInterval(resendTimerInterval);
+  resendTimerInterval = setInterval(() => {
+    secs--;
+    secEl.textContent = numFa(secs);
+    if (secs <= 0) { clearInterval(resendTimerInterval); countEl.style.display='none'; btnEl.classList.add('show'); }
+  }, 1000);
+}
+
+function resendOTP() {
+  document.getElementById('resendBtn').classList.remove('show');
+  document.getElementById('resendCountdown').style.display = '';
+  document.getElementById('otpTimer').style.color = '';
+  startOTPTimer();
+  startResendTimer();
+  document.querySelectorAll('.bank-otp-cell').forEach(inp => inp.value='');
+  document.querySelectorAll('.bank-otp-cell')[0].focus();
+}
+
+async function verifyBankOTP() {
+  const otp = [...document.querySelectorAll('.bank-otp-cell')].map(i=>i.value).join('');
+  if (otp.length < 6) {
+    document.querySelectorAll('.bank-otp-cell').forEach(inp => inp.style.borderColor='#ef4444');
+    return;
+  }
+
+  const btn = document.getElementById('payBtn');
+  btn.classList.add('loading');
+
+  try {
+    const reservationId = getParam('reservationId');
+    const token = sessionStorage.getItem('sns_token');
+    if (reservationId && token) {
+      const res = await fetch('https://sansyar-1.onrender.com/api/reservations/${reservationId}/pay', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+    }
+  } catch(err) {
+    console.error('payment confirm error:', err);
+  }
+
+  btn.classList.remove('loading');
+  step = 'done';
+  confirmDiscountUsed();
+  updateSessionStatus();
+  showSuccess();
+}
+
+/* ── آپدیت status در sessionStorage ── */
+function updateSessionStatus() {
+  try {
+    const reservationId = getParam('reservationId');
+    const existing = JSON.parse(sessionStorage.getItem('sns_mock_reservations') || '[]');
+    const updated = existing.map(r => r.id === reservationId ? {...r, status:'paid'} : r);
+    sessionStorage.setItem('sns_mock_reservations', JSON.stringify(updated));
+  } catch(e) {}
+}
+
+/* ── SUCCESS ── */
+function showSuccess() {
+  clearInterval(otpTimerInterval);
+  clearInterval(resendTimerInterval);
+
+  const code = 'SNS-' + Math.random().toString(36).substr(2,6).toUpperCase();
+  document.getElementById('finalCode').textContent = code;
+
+  document.getElementById('successDetail').innerHTML =
+    '<div class="sd-row"><span class="sl">زمین</span><span class="sr">'+orderData.pitchName+'</span></div>'+
+    '<div class="sd-row"><span class="sl">تاریخ</span><span class="sr">'+orderData.date+'</span></div>'+
+    '<div class="sd-row"><span class="sl">ساعت</span><span class="sr">'+orderData.time+'</span></div>'+
+    '<div class="sd-row"><span class="sl">رزروکننده</span><span class="sr">'+orderData.name+'</span></div>'+
+    '<div class="sd-row"><span class="sl">مبلغ پرداختی</span><span class="sr" style="color:var(--green)">'+amountFa+'</span></div>'+
+    '<div class="sd-row"><span class="sl">شماره پیگیری</span><span class="sr" style="direction:ltr;font-family:monospace">'+(Math.floor(Math.random()*9000000000)+1000000000)+'</span></div>';
+
+  document.getElementById('successScreen').classList.add('show');
+}
+</script>
+</body>
+</html>
