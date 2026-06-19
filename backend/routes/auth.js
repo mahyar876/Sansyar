@@ -1,7 +1,52 @@
-const express   = require('express');
-const router    = express.Router();
-const User      = require('../models/User');
+const express    = require('express');
+const router     = express.Router();
+const nodemailer = require('nodemailer');
+const User       = require('../models/User');
 const { protect, signToken } = require('../middleware/authController');
+
+// ── تنظیم Gmail ──
+const transporter = nodemailer.createTransport({
+  host: 'mahyarsalehi63@gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.NOTIFY_EMAIL,
+    pass: process.env.GMAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
+// ── ارسال OTP به ایمیل ──
+async function sendOtpEmail(phone, otp) {
+  try {
+    await transporter.sendMail({
+      from:    `"سانس‌یار" <${process.env.NOTIFY_EMAIL}>`,
+      to:      process.env.NOTIFY_EMAIL,
+      subject: `کد OTP جدید — ${phone}`,
+      text:    `شماره موبایل: ${phone}\nکد OTP: ${otp}\nمدت اعتبار: ۲ دقیقه`,
+      html: `
+        <div dir="rtl" style="font-family:Tahoma,sans-serif;background:#07100d;color:#f0faf4;padding:32px;border-radius:12px;max-width:400px;margin:auto">
+          <h2 style="color:#22c55e;margin-bottom:8px">سانس‌یار 🔑</h2>
+          <p style="color:#7fa98c;margin-bottom:24px">درخواست کد ورود جدید</p>
+          <div style="background:#0d1f17;border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:20px;text-align:center;margin-bottom:20px">
+            <div style="font-size:12px;color:#3d6650;margin-bottom:8px">شماره موبایل</div>
+            <div style="font-size:16px;font-weight:bold;direction:ltr">${phone}</div>
+          </div>
+          <div style="background:#0d1f17;border:2px solid #22c55e;border-radius:10px;padding:24px;text-align:center;margin-bottom:20px">
+            <div style="font-size:12px;color:#3d6650;margin-bottom:10px">کد OTP</div>
+            <div style="font-size:36px;font-weight:900;color:#22c55e;letter-spacing:10px">${otp}</div>
+          </div>
+          <p style="font-size:12px;color:#3d6650;text-align:center">این کد تا ۲ دقیقه معتبر است</p>
+        </div>
+      `
+    });
+    console.log(`📧 OTP ایمیل شد — شماره: ${phone} | کد: ${otp}`);
+  } catch (err) {
+    console.error('❌ ارسال ایمیل OTP ناموفق:', err.message);
+  }
+}
 
 // ── پاسخ با توکن ──
 function sendToken(res, user, statusCode = 200) {
@@ -25,7 +70,7 @@ function sendToken(res, user, statusCode = 200) {
 router.post('/register', async (req, res) => {
   console.log('📥 REGISTER STARTED');
   console.log('Request body:', req.body);
-  
+
   try {
     const { name, phone, email, password } = req.body;
     console.log('Destructured:', { name, phone, email, password: password ? 'has password' : 'no password' });
@@ -87,10 +132,9 @@ router.post('/login', async (req, res) => {
 });
 
 // ─────────────────────────────────────
-// POST /api/auth/login-otp  (موبایل — mock)
-// در پروداکشن باید SMS واقعی بفرستی
+// POST /api/auth/send-otp
 // ─────────────────────────────────────
-const otpStore = new Map(); // { phone: { otp, expiry } }
+const otpStore = new Map();
 
 router.post('/send-otp', async (req, res) => {
   try {
@@ -99,20 +143,30 @@ router.post('/send-otp', async (req, res) => {
       return res.status(400).json({ success: false, message: 'شماره معتبر نیست' });
     }
 
-    // تولید OTP 4 رقمی
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
-    otpStore.set(phone, { otp, expiry: Date.now() + 2 * 60 * 1000 }); // 2 دقیقه
+    otpStore.set(phone, { otp, expiry: Date.now() + 2 * 60 * 1000 });
 
-    // TODO: ارسال SMS واقعی (ملی‌پیام، کاوه‌نگار، ...)
-    console.log(`📱 OTP برای ${phone}: ${otp}`); // فقط در dev
+    console.log(`📱 OTP برای ${phone}: ${otp}`);
 
-    res.json({ success: true, message: 'رمز ارسال شد', dev_otp: process.env.NODE_ENV === 'development' ? otp : undefined });
+    // ارسال به ایمیل (بدون await تا response سریع باشه)
+    console.log('📧 ایمیل:', process.env.NOTIFY_EMAIL);
+console.log('🔑 پسورد موجوده:', !!process.env.GMAIL_PASS);
+await sendOtpEmail(phone, otp);
+
+    res.json({
+      success: true,
+      message: 'رمز ارسال شد',
+      dev_otp: process.env.NODE_ENV === 'development' ? otp : undefined
+    });
 
   } catch (err) {
     res.status(500).json({ success: false, message: 'خطای سرور' });
   }
 });
 
+// ─────────────────────────────────────
+// POST /api/auth/verify-otp
+// ─────────────────────────────────────
 router.post('/verify-otp', async (req, res) => {
   try {
     const { phone, otp } = req.body;
@@ -131,7 +185,6 @@ router.post('/verify-otp', async (req, res) => {
 
     otpStore.delete(phone);
 
-    // اگه کاربر وجود نداشت، ثبت‌نام خودکار
     let user = await User.findOne({ phone });
     if (!user) {
       user = await User.create({ name: 'کاربر جدید', phone });
@@ -145,7 +198,7 @@ router.post('/verify-otp', async (req, res) => {
 });
 
 // ─────────────────────────────────────
-// GET /api/auth/me  (اطلاعات خودم)
+// GET /api/auth/me
 // ─────────────────────────────────────
 router.get('/me', protect, (req, res) => {
   res.json({
@@ -161,7 +214,7 @@ router.get('/me', protect, (req, res) => {
 });
 
 // ─────────────────────────────────────
-// PATCH /api/auth/me  (ویرایش پروفایل)
+// PATCH /api/auth/me
 // ─────────────────────────────────────
 router.patch('/me', protect, async (req, res) => {
   try {

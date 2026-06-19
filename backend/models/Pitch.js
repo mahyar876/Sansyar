@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const slotSchema = new mongoose.Schema({
   time:   { type: String, required: true }, // مثلاً "۱۸:۰۰–۱۹:۰۰"
+  price:  { type: Number, required: true, default: 550000 }, // قیمت اختصاصی این سانس
   taken:  { type: Boolean, default: false },
   takenBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 }, { _id: false });
@@ -10,7 +11,7 @@ const pitchSchema = new mongoose.Schema({
   name:    { type: String, required: true, trim: true },
   type:    { type: String, enum: ['futsal', 'grass'], required: true },
   size:    { type: Number, enum: [5, 7, 11], required: true },
-  price:   { type: Number, required: true }, // تومان
+  price:   { type: Number, required: true }, // قیمت پایه (نمایشی روی کارت)
   address: { type: String, required: true },
   desc:    { type: String },
   tags:    [String],
@@ -18,18 +19,21 @@ const pitchSchema = new mongoose.Schema({
   color2:  { type: String, default: '#051a0e' },
   isActive:{ type: Boolean, default: true },
 
-  // سانس‌های روزانه — هر سانس ۱.۵ ساعت (ریست میشن)
+  // سانس‌های روزانه — هر سانس قیمت اختصاصی خودش رو دارد
   slots: {
     type: [slotSchema],
     default: () => [
-      { time: '۰۸:۰۰–۰۹:۳۰', taken: false },
-      { time: '۰۹:۳۰–۱۱:۰۰', taken: false },
-      { time: '۱۱:۰۰–۱۲:۳۰', taken: false },
-      { time: '۱۴:۰۰–۱۵:۳۰', taken: false },
-      { time: '۱۵:۳۰–۱۷:۰۰', taken: false },
-      { time: '۱۷:۰۰–۱۸:۳۰', taken: false },
-      { time: '۱۸:۳۰–۲۰:۰۰', taken: false },
-      { time: '۲۰:۰۰–۲۱:۳۰', taken: false },
+      { time: '۰۶:۰۰–۰۷:۳۰', price: 550000, taken: false },
+      { time: '۰۷:۳۰–۰۹:۰۰', price: 550000, taken: false },
+      { time: '۰۹:۰۰–۱۰:۳۰', price: 550000, taken: false },
+      { time: '۱۰:۳۰–۱۲:۰۰', price: 550000, taken: false },
+      { time: '۱۲:۰۰–۱۳:۳۰', price: 550000, taken: false },
+      { time: '۱۳:۳۰–۱۵:۰۰', price: 550000, taken: false },
+      { time: '۱۵:۰۰–۱۶:۳۰', price: 550000, taken: false },
+      { time: '۱۶:۳۰–۱۸:۰۰', price: 700000, taken: false },
+      { time: '۱۸:۰۰–۱۹:۳۰', price: 700000, taken: false },
+      { time: '۱۹:۳۰–۲۱:۰۰', price: 700000, taken: false },
+      { time: '۲۱:۰۰–۲۲:۳۰', price: 700000, taken: false },
     ]
   },
 

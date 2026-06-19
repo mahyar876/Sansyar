@@ -198,7 +198,7 @@ if (document.getElementById('pitchesGrid')) {
 
   // ── GLOBAL STATE (قابل دسترس از همه جا) ──
   window.SNS = {
-    API:        'https://sansyar-1.onrender.com/api',
+    API:           'https://sansyar-1.onrender.com/api', // ⚠️ آدرس Render خودت رو اینجا بگذار
     typeLabel:     { futsal: 'فوتسال', grass: 'چمن' },
     pitches:       [],
     filteredList:  [],
@@ -208,7 +208,7 @@ if (document.getElementById('pitchesGrid')) {
   };
 
   // ══════════════════════════════════════════════════════
-  // سانس‌های پیش‌فرض — از localStorage ادمین خوانده می‌شه
+  // سانس‌های پیش‌فرض (fallback) — فقط وقتی سرور جواب نداد استفاده می‌شه
   // ══════════════════════════════════════════════════════
   const DEFAULT_SLOT_DEFS = [
     {time:'۰۶:۰۰–۰۷:۳۰', price:550000},
@@ -224,37 +224,7 @@ if (document.getElementById('pitchesGrid')) {
     {time:'۲۱:۰۰–۲۲:۳۰', price:700000},
   ];
 
-  // خوندن state ادمین از localStorage
-  function getAdminState() {
-    try {
-      const saved = localStorage.getItem('sansyar_admin_state');
-      if (saved) return JSON.parse(saved);
-    } catch(e) {}
-    return null;
-  }
-
-  // سانسu200cهای جهانی u2014 هر بار تازه از localStorage میخونه
-  function getSlotDefs() {
-    const st = getAdminState();
-    return (st && st.slots && st.slots.length) ? st.slots : DEFAULT_SLOT_DEFS;
-  }
-
-  // سانس از slotDefs جهانی u2014 takenArr مشخص میu200cکنه کدوم رزروه
-  function makeSlots(takenArr) {
-    const defs = getSlotDefs();
-    return defs.map(function(s, i) {
-      return { time: s.time, price: s.price, taken: takenArr[i] || false };
-    });
-  }
-
-  // سانس اختصاصی برای یک زمین خاص (از پنل ادمین)
-  function makePitchSlots(defs, takenArr) {
-    return defs.map(function(s, i) {
-      return { time: s.time, price: s.price, taken: takenArr[i] || false };
-    });
-  }
-
-  // داده‌های پیش‌فرض زمین‌ها (قیمت‌های اصلی از seed.js)
+  // داده‌های پیش‌فرض زمین‌ها (fallback اگه سرور در دسترس نبود)
   const DEFAULT_STATIC_PITCHES_RAW = [
     {
       id: '1', name: 'سالن فوتسال آریا', type: 'futsal', size: 5,
@@ -300,46 +270,23 @@ if (document.getElementById('pitchesGrid')) {
     },
   ];
 
-  // ساخت STATIC_PITCHES با ادغام داده‌های ادمین
+  // ساخت لیست fallback (وقتی سرور در دسترس نباشه)
   function buildStaticPitches() {
-    const st = getAdminState();
-    const slotDefs = getSlotDefs();
-    var lsTaken = {};
-    try { lsTaken = JSON.parse(localStorage.getItem('sns_taken_slots') || '{}'); } catch(e) {}
-    return DEFAULT_STATIC_PITCHES_RAW.map(function(def, i) {
-      var adminP = (st && st.pitches && st.pitches[i]) ? st.pitches[i] : null;
-      var takenArr = adminP ? (adminP.takenSlots || def.takenArr) : def.takenArr;
-      // اعمال رزروهای mock از localStorage
-      var extraTaken = lsTaken[def.id] || [];
-      takenArr = takenArr.map(function(t, si) { return t || extraTaken.includes(si); });
-      // قیمت‌های اختصاصی هر زمین — از پنل ادمین
-      var slotPrices = (adminP && adminP.slotPrices && adminP.slotPrices.length === slotDefs.length)
-        ? adminP.slotPrices
-        : slotDefs.map(function(s) { return s.price; });
-      var slots = slotDefs.map(function(s, si) {
-        return { time: s.time, price: slotPrices[si], taken: takenArr[si] || false };
+    return DEFAULT_STATIC_PITCHES_RAW.map(function(def) {
+      var slots = DEFAULT_SLOT_DEFS.map(function(s, si) {
+        return { time: s.time, price: s.price, taken: def.takenArr[si] || false };
       });
       var avail = slots.filter(function(s) { return !s.taken; }).length;
-      // قیمت نمایشی روی کارت: کمترین قیمت سانس‌های این زمین
-      var minPrice = slotPrices.reduce(function(min, p) { return p < min ? p : min; }, slotPrices[0]);
       return {
-        id: def.id,
-        name: adminP ? (adminP.name || def.name) : def.name,
-        type: adminP ? (adminP.type || def.type) : def.type,
-        size: adminP ? (adminP.size || def.size) : def.size,
-        price: minPrice,
-        avail: avail,
-        color1: def.color1,
-        color2: def.color2,
-        tags: adminP && adminP.tags && adminP.tags.length ? adminP.tags : def.tags,
-        address: adminP ? (adminP.address || def.address) : def.address,
-        isActive: adminP ? (adminP.isActive !== false) : true,
-        slots: slots,
+        id: def.id, name: def.name, type: def.type, size: def.size,
+        price: def.price, avail: avail,
+        color1: def.color1, color2: def.color2,
+        tags: def.tags, address: def.address,
+        isActive: true, slots: slots,
       };
-    }).filter(function(p) { return p.isActive !== false; });
+    });
   }
 
-  // STATIC_PITCHES حذف شد 2014 هر بار با buildStaticPitches() تازه ساخته میشه
   // ════════════════════════════════════
   // JALALI DATE PICKER
   // ════════════════════════════════════
@@ -376,7 +323,6 @@ if (document.getElementById('pitchesGrid')) {
     // اولین روز ماه به میلادی -> روز هفته (۰=یکشنبه با تنظیم خودمون)
     var firstGregArr = jalaliToGregorian(jpViewYear, jpViewMonth, 1);
     var firstGregDate = new Date(firstGregArr[0], firstGregArr[1] - 1, firstGregArr[2]);
-    // getDay(): 0=یکشنبه میلادی... برابر با چیدمان هفته‌ی ما هم هست چون یکشنبه ستون اول
     var startOffset = firstGregDate.getDay();
     var totalDays = daysInJalaliMonth(jpViewYear, jpViewMonth);
 
@@ -432,7 +378,7 @@ if (document.getElementById('pitchesGrid')) {
     }
   });
 
-  // ── فیلتر محلی روی داده‌های static ──
+  // ── فیلتر محلی روی داده‌های فعلی ──
   function applyStaticFilter(pitches) {
     const type = document.getElementById('typeFilter').value;
     const size = parseInt(document.getElementById('sizeFilter').value) || 0;
@@ -448,11 +394,32 @@ if (document.getElementById('pitchesGrid')) {
 
   // ── LOAD PITCHES FROM API (با fallback به static) ──
   async function loadPitches() {
-    // همیشه تازه از localStorage ادمین میخونه
-    const freshPitches = buildStaticPitches();
-    SNS._allStatic   = freshPitches;
-    SNS.pitches      = freshPitches;
-    SNS.filteredList = applyStaticFilter(freshPitches);
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(SNS.API + '/pitches', { signal: controller.signal });
+      clearTimeout(timeout);
+      const data = await res.json();
+      if (!data.success) throw new Error();
+
+      const mapped = data.pitches.map(p => ({
+        _id: p._id, name: p.name, type: p.type, size: p.size,
+        price: p.price, avail: p.avail,
+        color1: p.color1 || '#0d3320', color2: p.color2 || '#051a0e',
+        tags: p.tags || [], address: p.address,
+        isActive: p.isActive, slots: p.slots,
+      }));
+
+      SNS.pitches      = mapped;
+      SNS._allStatic   = mapped;
+      SNS.filteredList = applyStaticFilter(mapped);
+    } catch (e) {
+      // اگه سرور جواب نداد (مثلاً Render خوابیده)، برگرد به داده‌های static
+      const freshPitches = buildStaticPitches();
+      SNS._allStatic   = freshPitches;
+      SNS.pitches      = freshPitches;
+      SNS.filteredList = applyStaticFilter(freshPitches);
+    }
     renderPitches();
   }
   window.loadPitches = loadPitches;
@@ -469,7 +436,7 @@ if (document.getElementById('pitchesGrid')) {
       return data.slots;
     } catch (err) {
       // fallback: سانس‌های static رو برگردون
-      const staticPitch = buildStaticPitches().find(p => p.id === pitchId || p._id === pitchId);
+      const staticPitch = SNS._allStatic && SNS._allStatic.find(p => (p._id || p.id) === pitchId);
       return staticPitch ? staticPitch.slots : [];
     }
   }
@@ -592,12 +559,7 @@ if (document.getElementById('pitchesGrid')) {
 
   // ── APPLY FILTER ──
   async function applyFilter() {
-    // همیشه تازه از localStorage بخون
-    const freshPitches = buildStaticPitches();
-    SNS._allStatic   = freshPitches;
-    SNS.pitches      = freshPitches;
-    SNS.filteredList = applyStaticFilter(freshPitches);
-    renderPitches();
+    await loadPitches();
 
     if (SNS.selectedPitch && !SNS.filteredList.find(function(p) {
       return (p._id || p.id) === (SNS.selectedPitch._id || SNS.selectedPitch.id);
@@ -748,14 +710,6 @@ if (document.getElementById('pitchesGrid')) {
       createdAt: new Date().toISOString(),
     });
     sessionStorage.setItem('sns_mock_reservations', JSON.stringify(existing.slice(0, 20)));
-
-    // علامت‌گذاری slot به عنوان رزرو شده در localStorage
-    var takenKey = 'sns_taken_slots';
-    var taken = JSON.parse(localStorage.getItem(takenKey) || '{}');
-    var pid = SNS.selectedPitch._id || SNS.selectedPitch.id;
-    if (!taken[pid]) taken[pid] = [];
-    if (!taken[pid].includes(SNS.selectedSlot)) taken[pid].push(SNS.selectedSlot);
-    localStorage.setItem(takenKey, JSON.stringify(taken));
 
     var params = new URLSearchParams({
       reservationId: resId, code,

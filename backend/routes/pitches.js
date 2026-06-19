@@ -1,15 +1,17 @@
 const express = require('express');
 const router  = express.Router();
-const Pitch   = require('../models/Pitch');
-const { protect, adminOnly } = require('../middleware/authController');
+const Pitch   = require('./Pitch');
+const { protect, adminOnly } = require('./authController');
 
 // ─────────────────────────────────────
 // GET /api/pitches  (لیست همه زمین‌ها)
+// با ?all=1 همه (حتی غیرفعال) برمی‌گردن — برای پنل ادمین
 // ─────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
-    const { type, size, sort } = req.query;
-    const filter = { isActive: true };
+    const { type, size, sort, all } = req.query;
+    const filter = {};
+    if (!all) filter.isActive = true;
 
     if (type) filter.type = type;
     if (size) filter.size = parseInt(size);
@@ -44,7 +46,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const pitch = await Pitch.findById(req.params.id);
-    if (!pitch || !pitch.isActive) {
+    if (!pitch) {
       return res.status(404).json({ success: false, message: 'زمین پیدا نشد' });
     }
     res.json({

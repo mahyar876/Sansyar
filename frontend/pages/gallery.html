@@ -385,12 +385,18 @@
     }
     .lb-share-btn:hover { color:var(--text); border-color:var(--green); }
 
-    /* ── EMPTY STATE ── */
-    .empty-state {
+    /* ── EMPTY / LOADING STATE ── */
+    .empty-state, .loading-state {
       grid-column:1/-1; text-align:center;
       padding:80px 20px; color:var(--text-muted);
     }
     .empty-state h3 { font-size:20px; margin-bottom:8px; color:var(--text-body); }
+    .loading-spinner {
+      width:32px; height:32px; border-radius:50%;
+      border:3px solid var(--green-border); border-top-color:var(--green);
+      animation:spin 1s linear infinite; margin:0 auto 16px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
     /* ── FOOTER ── */
     footer {
@@ -448,7 +454,7 @@
     <div class="hero-inner">
       <div class="sec-eyebrow"><span></span>گالری زمین‌ها</div>
       <h1>بهترین <em>زمین‌ها</em> رو پیدا کن</h1>
-      <p>۶ زمین فوتسال و چمن در سراسر شهر — با امکانات کامل و رزرو آنلاین</p>
+      <p id="heroSub">زمین‌های فوتسال و چمن در سراسر شهر — با امکانات کامل و رزرو آنلاین</p>
     </div>
   </div>
 
@@ -472,12 +478,17 @@
 
   <!-- STATS BAR -->
   <div class="stats-bar">
-    نمایش <strong id="countDisplay">۶</strong> زمین
+    نمایش <strong id="countDisplay">۰</strong> زمین
   </div>
 
   <!-- GALLERY -->
   <div class="gallery-wrap">
-    <div class="gallery-grid" id="galleryGrid"></div>
+    <div class="gallery-grid" id="galleryGrid">
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        در حال بارگذاری زمین‌ها...
+      </div>
+    </div>
   </div>
 
   <!-- LIGHTBOX -->
@@ -508,92 +519,55 @@
   </footer>
 
 <script>
-/* ── DATA ── */
-const DEFAULT_PITCHES = [
+/* ── API ── */
+const API = 'https://sansyar-1.onrender.com/api'; // ⚠️ آدرس Render خودت رو اینجا بگذار
+
+/* ── FALLBACK DATA (فقط وقتی سرور جواب نده) ── */
+const FALLBACK_PITCHES = [
   {
-    id:1, name:'سالن فوتسال آریا', type:'futsal', size:5,
+    id:'1', name:'سالن فوتسال آریا', type:'futsal', size:5,
     color1:'#0d3320', color2:'#051a0e',
     price:180000, avail:6,
     tags:['سرپوشیده','رختکن','کفپوش PVC','نور مصنوعی'],
     address:'خیابان ولیعصر، نرسیده به میدان ونک',
-    desc:'سالن استاندارد فوتسال با کفپوش حرفه‌ای، رختکن مجزا و سیستم روشنایی کامل. مناسب برای بازی‌های حرفه‌ای و تفریحی.',
     featured: true
   },
   {
-    id:2, name:'چمن فوتبال پارک ملت', type:'grass', size:11,
+    id:'2', name:'چمن فوتبال پارک ملت', type:'grass', size:11,
     color1:'#0a2e10', color2:'#040f06',
     price:320000, avail:3,
     tags:['چمن مصنوعی','روشنایی شبانه','پارکینگ','تریبون'],
     address:'پارک ملت، بلوار کشاورز',
-    desc:'زمین چمن مصنوعی استاندارد فوتبال ۱۱ نفره با سیستم روشنایی حرفه‌ای برای بازی شبانه. پارکینگ رایگان در محوطه.',
-    featured: false
   },
   {
-    id:3, name:'فوتسال ستاره شرق', type:'futsal', size:7,
+    id:'3', name:'فوتسال ستاره شرق', type:'futsal', size:7,
     color1:'#0d2e1a', color2:'#060f08',
     price:210000, avail:8,
     tags:['سرپوشیده','دوش','نوشیدنی','وای‌فای'],
     address:'نارمک، خیابان دماوند',
-    desc:'مدرن‌ترین سالن فوتسال منطقه با امکانات کامل شامل دوش گرم، فروشگاه تجهیزات و کافه نوشیدنی.',
-    featured: false
   },
   {
-    id:4, name:'زمین چمن رضایی', type:'grass', size:7,
+    id:'4', name:'زمین چمن رضایی', type:'grass', size:7,
     color1:'#082510', color2:'#030c05',
     price:250000, avail:4,
     tags:['چمن طبیعی','تریبون','بوفه','رختکن'],
     address:'تهران پارس، خیابان شکوفه',
-    desc:'یکی از معدود زمین‌های چمن طبیعی شهر با خاک استاندارد و تریبون تماشاگر. ایده‌آل برای لیگ‌های محلی.',
-    featured: false
   },
   {
-    id:5, name:'سالن ورزشی امید', type:'futsal', size:5,
+    id:'5', name:'سالن ورزشی امید', type:'futsal', size:5,
     color1:'#0d3320', color2:'#051a0e',
     price:160000, avail:5,
     tags:['سرپوشیده','رختکن','مربی آزاد'],
     address:'صادقیه، خیابان آیت‌الله کاشانی',
-    desc:'سالن فوتسال مناسب و مقرون‌به‌صرفه با محیط صمیمی و خانوادگی. بهترین انتخاب برای تیم‌های محله‌ای.',
-    featured: false
   },
   {
-    id:6, name:'چمن فوتبال دانشگاه', type:'grass', size:11,
+    id:'6', name:'چمن فوتبال دانشگاه', type:'grass', size:11,
     color1:'#0a2e10', color2:'#040f06',
     price:280000, avail:2,
     tags:['چمن مصنوعی','روشنایی شبانه','دوربین'],
     address:'انقلاب، محوطه دانشگاه تهران',
-    desc:'زمین ۱۱ نفره با چمن مصنوعی درجه یک و سیستم دوربین برای ضبط بازی‌ها. محیط آرام و آکادمیک.',
-    featured: false
   },
 ];
-
-// خوندن از localStorage ادمین و ادغام با داده‌های پیش‌فرض
-function loadPitchesFromAdmin() {
-  try {
-    const saved = localStorage.getItem('sansyar_admin_state');
-    if (!saved) return DEFAULT_PITCHES;
-    const state = JSON.parse(saved);
-    if (!state.pitches || !state.pitches.length) return DEFAULT_PITCHES;
-    return DEFAULT_PITCHES.map((def, i) => {
-      const admin = state.pitches[i];
-      if (!admin) return def;
-      return {
-        ...def,
-        name: admin.name || def.name,
-        type: admin.type || def.type,
-        size: admin.size || def.size,
-        price: admin.price || def.price,
-        address: admin.address || def.address,
-        tags: admin.tags && admin.tags.length ? admin.tags : def.tags,
-        avail: admin.takenSlots ? admin.takenSlots.filter(t => !t).length : def.avail,
-        isActive: admin.isActive !== undefined ? admin.isActive : true,
-      };
-    }).filter(p => p.isActive !== false);
-  } catch(e) {
-    return DEFAULT_PITCHES;
-  }
-}
-
-const pitches = loadPitchesFromAdmin();
 
 const typeLabel = { futsal:'فوتسال', grass:'چمن' };
 
@@ -601,40 +575,35 @@ function numFa(n) {
   return n.toString().replace(/\d/g, d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 }
 function priceFa(n) {
-  return numFa(n.toLocaleString('en'));
+  return numFa((n||0).toLocaleString('en'));
 }
 
 /* ── PITCH SVG ILLUSTRATION ── */
-function pitchSVG(p, large=false) {
+function pitchSVG(p) {
   const isFutsal = p.type==='futsal';
+  const gid = String(p.id).replace(/[^a-zA-Z0-9]/g,''); // برای امن بودن id توی svg
   if (isFutsal) {
     return `<svg class="pitch-svg" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
       <defs>
-        <linearGradient id="g${p.id}" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="g${gid}" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stop-color="${p.color1}"/>
           <stop offset="100%" stop-color="${p.color2}"/>
         </linearGradient>
-        <radialGradient id="glow${p.id}" cx="50%" cy="50%" r="50%">
+        <radialGradient id="glow${gid}" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stop-color="rgba(34,197,94,0.07)"/>
           <stop offset="100%" stop-color="transparent"/>
         </radialGradient>
       </defs>
-      <rect width="400" height="220" fill="url(#g${p.id})"/>
-      <rect width="400" height="220" fill="url(#glow${p.id})"/>
-      <!-- outer lines -->
+      <rect width="400" height="220" fill="url(#g${gid})"/>
+      <rect width="400" height="220" fill="url(#glow${gid})"/>
       <rect x="16" y="14" width="368" height="192" rx="3" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-      <!-- center line -->
       <line x1="200" y1="14" x2="200" y2="206" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-      <!-- center circle -->
       <circle cx="200" cy="110" r="42" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
       <circle cx="200" cy="110" r="4" fill="rgba(255,255,255,0.2)"/>
-      <!-- penalty area left -->
       <rect x="16" y="62" width="60" height="96" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1.2"/>
       <rect x="16" y="80" width="28" height="60" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-      <!-- penalty area right -->
       <rect x="324" y="62" width="60" height="96" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1.2"/>
       <rect x="356" y="80" width="28" height="60" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-      <!-- corner arcs -->
       <path d="M16,14 Q28,14 28,26" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
       <path d="M384,14 Q372,14 372,26" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
       <path d="M16,206 Q28,206 28,194" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
@@ -643,32 +612,28 @@ function pitchSVG(p, large=false) {
   } else {
     return `<svg class="pitch-svg" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
       <defs>
-        <linearGradient id="g${p.id}" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="g${gid}" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stop-color="${p.color1}"/>
           <stop offset="100%" stop-color="${p.color2}"/>
         </linearGradient>
-        <radialGradient id="glow${p.id}" cx="50%" cy="50%" r="50%">
+        <radialGradient id="glow${gid}" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stop-color="rgba(34,197,94,0.06)"/>
           <stop offset="100%" stop-color="transparent"/>
         </radialGradient>
       </defs>
-      <rect width="400" height="220" fill="url(#g${p.id})"/>
-      <!-- grass stripes -->
+      <rect width="400" height="220" fill="url(#g${gid})"/>
       ${[0,1,2,3,4,5,6,7].map(i=>`<rect x="0" y="${i*28}" width="400" height="14" fill="rgba(34,197,94,0.018)"/>`).join('')}
-      <rect width="400" height="220" fill="url(#glow${p.id})"/>
+      <rect width="400" height="220" fill="url(#glow${gid})"/>
       <rect x="16" y="14" width="368" height="192" fill="none" stroke="rgba(255,255,255,0.13)" stroke-width="1.5"/>
       <line x1="200" y1="14" x2="200" y2="206" stroke="rgba(255,255,255,0.13)" stroke-width="1.5"/>
       <circle cx="200" cy="110" r="48" fill="none" stroke="rgba(255,255,255,0.11)" stroke-width="1.5"/>
       <circle cx="200" cy="110" r="4" fill="rgba(255,255,255,0.2)"/>
-      <!-- penalty area -->
       <rect x="16" y="54" width="80" height="112" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1.2"/>
       <rect x="16" y="74" width="38" height="72" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
       <rect x="304" y="54" width="80" height="112" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1.2"/>
       <rect x="346" y="74" width="38" height="72" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-      <!-- penalty arcs -->
       <path d="M96,86 Q120,110 96,134" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
       <path d="M304,86 Q280,110 304,134" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-      <!-- corner arcs -->
       <path d="M16,14 Q30,14 30,28" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
       <path d="M384,14 Q370,14 370,28" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
       <path d="M16,206 Q30,206 30,192" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
@@ -678,10 +643,36 @@ function pitchSVG(p, large=false) {
 }
 
 /* ── STATE ── */
+let pitches      = [];
 let currentFilter = 'all';
 let currentSort   = 'default';
 let lightboxIndex = 0;
 let displayList   = [];
+
+/* ── LOAD PITCHES FROM SERVER (با fallback) ── */
+async function loadGalleryPitches() {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(`${API}/pitches`, { signal: controller.signal });
+    clearTimeout(timeout);
+    const data = await res.json();
+    if (!data.success) throw new Error();
+
+    pitches = data.pitches.map(p => ({
+      id: p._id,
+      name: p.name, type: p.type, size: p.size,
+      color1: p.color1 || '#0d3320', color2: p.color2 || '#051a0e',
+      price: p.price, avail: p.avail,
+      tags: p.tags || [], address: p.address,
+      desc: p.desc || '',
+    }));
+  } catch (e) {
+    // اگه سرور جواب نداد، از داده‌های پشتیبان استفاده کن
+    pitches = FALLBACK_PITCHES;
+  }
+  render();
+}
 
 /* ── RENDER ── */
 function getFiltered() {
@@ -704,7 +695,7 @@ function render() {
 
   grid.innerHTML = displayList.map((p, idx) => `
     <div class="gallery-card ${idx===0 && currentFilter==='all' && currentSort==='default' ? 'featured' : ''}"
-         onclick="openLightbox(${p.id})">
+         onclick="openLightbox('${p.id}')">
       <div class="card-img">
         ${pitchSVG(p)}
         <div class="card-overlay"></div>
@@ -715,10 +706,10 @@ function render() {
           <div class="card-type-badge">${typeLabel[p.type]} · ${numFa(p.size)} نفره</div>
           <div class="card-title">${p.name}</div>
           <div class="card-meta">
-            <span class="card-meta-item"><span class="avail-dot"></span> ${numFa(p.avail)} سانس خالی</span>
+            <span class="card-meta-item"><span class="avail-dot"></span> ${numFa(p.avail || 0)} سانس خالی</span>
             <span class="card-price">${priceFa(p.price)} تومان</span>
           </div>
-          <div class="card-tags">${p.tags.slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="card-tags">${(p.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
         </div>
       </div>
     </div>
@@ -727,7 +718,7 @@ function render() {
 
 /* ── LIGHTBOX ── */
 function openLightbox(id) {
-  lightboxIndex = displayList.findIndex(p=>p.id===id);
+  lightboxIndex = displayList.findIndex(p=>String(p.id)===String(id));
   renderLightbox();
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow='hidden';
@@ -737,7 +728,7 @@ function renderLightbox() {
   const p = displayList[lightboxIndex];
   if (!p) return;
 
-  document.getElementById('lbImg').innerHTML = pitchSVG(p, true) +
+  document.getElementById('lbImg').innerHTML = pitchSVG(p) +
     '<div class="lb-img-overlay"></div>';
 
   document.getElementById('lbBadge').textContent = typeLabel[p.type] + ' · ' + numFa(p.size) + ' نفره';
@@ -750,7 +741,7 @@ function renderLightbox() {
     </div>
     <div class="lb-info-item">
       <div class="lb-info-label">سانس‌های خالی</div>
-      <div class="lb-info-value green">${numFa(p.avail)} سانس</div>
+      <div class="lb-info-value green">${numFa(p.avail || 0)} سانس</div>
     </div>
     <div class="lb-info-item">
       <div class="lb-info-label">آدرس</div>
@@ -758,7 +749,7 @@ function renderLightbox() {
     </div>
   `;
 
-  document.getElementById('lbTags').innerHTML = p.tags.map(t=>`<span class="lb-tag">${t}</span>`).join('');
+  document.getElementById('lbTags').innerHTML = (p.tags||[]).map(t=>`<span class="lb-tag">${t}</span>`).join('');
 
   document.getElementById('lbReserveBtn').onclick = () => {
     window.location.href = `./reserve.html?pitch=${p.id}`;
@@ -811,7 +802,7 @@ document.addEventListener('keydown', e => {
 });
 
 /* ── INIT ── */
-render();
+loadGalleryPitches();
 
 /* ── Show "حساب من" if logged in ── */
 (function() {
