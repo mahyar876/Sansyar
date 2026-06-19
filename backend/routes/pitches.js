@@ -1,6 +1,6 @@
 const express = require('express');
 const router  = express.Router();
-const Pitch   = require('./Pitch');
+const Pitch   = require('../models/Pitch');
 const { protect, adminOnly } = require('./authController');
 
 // ─────────────────────────────────────
