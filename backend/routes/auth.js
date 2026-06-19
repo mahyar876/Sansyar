@@ -6,15 +6,10 @@ const { protect, signToken } = require('../middleware/authController');
 
 // ── تنظیم Gmail ──
 const transporter = nodemailer.createTransport({
-  host: 'mahyarsalehi63@gmail.com',
-  port: 587,
-  secure: false,
+  service: 'gmail',  // ✅ درست
   auth: {
     user: process.env.NOTIFY_EMAIL,
     pass: process.env.GMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
   }
 });
 
