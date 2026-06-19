@@ -146,7 +146,7 @@ router.post('/send-otp', async (req, res) => {
     // ارسال به ایمیل (بدون await تا response سریع باشه)
     console.log('📧 ایمیل:', process.env.NOTIFY_EMAIL);
 console.log('🔑 پسورد موجوده:', !!process.env.GMAIL_PASS);
-await sendOtpEmail(phone, otp);
+/*await*/ sendOtpEmail(phone, otp);
 
     res.json({
       success: true,
